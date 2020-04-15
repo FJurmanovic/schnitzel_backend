@@ -16,7 +16,7 @@
   "bugs": {
     "url": "https://github.com/Yurma/schnitzel_backend/issues"
   },
-  "homepage": "https://github.com/Yurma/schnitzel_backend#readme"
+  "homepage": "https://github.com/Yurma/schnitzel_backend#readme",
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",
