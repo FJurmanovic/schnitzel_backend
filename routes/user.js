@@ -7,6 +7,8 @@ const router = express.Router();
 const User = require("../model/User");
 const auth = require("../middleware/auth");
 
+let errRoute = {};
+
 
 
 router.post(
@@ -70,6 +72,7 @@ router.post(
                     });
                 }
             );
+            errRoute = errors;
         } catch (err) {
             console.log(err.message);
             res.status(500).send("Error in Saving");
@@ -130,6 +133,7 @@ router.post(
             });
           }
         );
+        errRoute = errors;
       } catch (e) {
         console.error(e);
         res.status(500).json({
@@ -147,6 +151,22 @@ router.get("/me", auth, async (req, res) => {
       res.send({ message: "Error in Fetching user" });
     }
   });
+
+router.get("/deactivate", auth, async (req, res) => {
+    try {
+      const user = await User.findByIdAndDelete(req.user.id);
+    } catch (e) {
+      res.send({ message: "Error in deleting user" });
+    }
+});
+
+router.get("/err", async (req, res) => {
+  try {
+    res.json(errRoute);
+  } catch (e) {
+    res.send({ message: 'Error'});
+  }
+});
   
 
 module.exports = router;
