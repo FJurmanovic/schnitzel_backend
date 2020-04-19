@@ -143,6 +143,63 @@ router.post(
     }
 );
 
+router.post(
+  "/edit",
+  async (req, res) => {
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        errors: errors.array()
+      });
+    }
+
+    const { email, username, password, id } = req.body;
+    try {
+      if (email){
+        User.findByIdAndUpdate(id, {email: email}, function(err, ress){
+          if(err) {
+            return res.status(400).json({
+              message: err
+            });
+          }else{
+            console.log(ress)
+          }
+        })
+      }
+      if (username){
+        User.findByIdAndUpdate(id, {username: username}, function(err, ress){
+          if(err) {
+            return res.status(400).json({
+              message: err
+            });
+          }else{
+            console.log(ress)
+          }
+        })
+      }
+      if (password){
+        const salt = await bcrypt.genSalt(10);
+        const hashpassword = await bcrypt.hash(password, salt);
+        User.findByIdAndUpdate(id, {password: hashpassword}, function(err, ress){
+          if(err) {
+            return res.status(400).json({
+              message: err
+            });
+          }else{
+            console.log(ress)
+          }
+        })
+      }
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({
+        message: "Server Error"
+      });
+    }
+  }
+);
+
 router.get("/me", auth, async (req, res) => {
     try {
       const user = await User.findById(req.user.id);
