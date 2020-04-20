@@ -6,7 +6,7 @@ module.exports = function(req, res, next) {
 
   try {
     const decoded = jwt_decode(token);
-    req.user = decoded.user;
+    req.post = decoded.post;
     next();
   } catch (e) {
     console.error(e);

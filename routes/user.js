@@ -200,7 +200,7 @@ router.post(
   }
 );
 
-router.get("/me", auth, async (req, res) => {
+router.get("/data", auth, async (req, res) => {
     try {
       const user = await User.findById(req.user.id);
       res.json(user);

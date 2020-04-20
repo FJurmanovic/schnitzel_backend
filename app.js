@@ -2,6 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const InitiateMongoServer = require("./config/db");
 const user = require("./routes/user");
+const post = require("./routes/post");
 
 var cors = require("cors");
 InitiateMongoServer();
@@ -19,6 +20,8 @@ app.get("/", (req, res) => {
 });
 
 app.use("/user", user);
+
+app.use("/post", post);
 
 app.listen(PORT, (req, res) => {
   console.log(`Server Started at PORT ${PORT}`);
