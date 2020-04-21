@@ -5,6 +5,7 @@ const router = express.Router();
 const jwt = require("jsonwebtoken");
 
 const Post = require("../model/Post");
+const User = require("../model/User");
 
 const auth = require("../middleware/post");
 
@@ -74,5 +75,23 @@ router.get("/data", auth, async (req, res) => {
       res.send({ message: "Error in Fetching user" });
     }
   });
+
+router.get("/home", auth, async (req, res) => {
+    try {
+        //const userid = req.user.id;      
+        await Post.find({}, function(err, posts){
+            var postMap = {};
+
+            posts.forEach(function(post) {
+                postMap[post._id] = post;
+            });
+
+            res.send(postMap);
+                
+        });
+    } catch (e) {
+        res.send({ message: "Error in fetching user" })
+    }
+});
 
 module.exports = router;

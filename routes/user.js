@@ -209,6 +209,15 @@ router.get("/data", auth, async (req, res) => {
     }
   });
 
+router.get("/getUser", async (req, res) => {
+    try {
+      const user = await User.findById(req.headers.id);
+      res.json(user);
+    } catch (e) {
+      res.send({ message: "Error in fetching user" });
+    }
+});
+
 router.get("/deactivate", auth, async (req, res) => {
     try {
       const user = await User.findByIdAndDelete(req.user.id);
