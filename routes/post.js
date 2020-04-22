@@ -76,17 +76,31 @@ router.get("/data", auth, async (req, res) => {
     }
   });
 
+
 router.get("/home", auth, async (req, res) => {
     try {
-        //const userid = req.user.id;      
-        await Post.find({}, function(err, posts){
+
+        await Post.find({},function(err, posts){
             var postMap = {};
 
-            posts.forEach(function(post) {
-                postMap[post._id] = post;
+            posts.forEach(async function(post, key) {
+                var thisPost = {};
+                const user = await User.findById(post.userId);
+                thisPost["id"] = post._id;
+                thisPost["title"] = post.title;
+                thisPost["content"] = post.content;
+                thisPost["userId"] = post.userId;
+                thisPost["username"] = user.username;
+                thisPost["createdAt"] = post.createdAt;
+                postMap[post._id] = thisPost;
+                if (key == posts.length-1){
+                    res.json(postMap);
+                }
             });
 
-            res.send(postMap);
+            
+
+            //res.send(postMap);
                 
         });
     } catch (e) {

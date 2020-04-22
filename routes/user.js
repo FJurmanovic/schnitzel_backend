@@ -203,7 +203,12 @@ router.post(
 router.get("/data", auth, async (req, res) => {
     try {
       const user = await User.findById(req.user.id);
-      res.json(user);
+      let userData = {};
+      userData["id"] = user._id;
+      userData["username"] = user.username;
+      userData["email"] = user.email;
+      userData["createdAt"] = user.createdAt;
+      res.json(userData);
     } catch (e) {
       res.send({ message: "Error in Fetching user" });
     }
@@ -212,7 +217,7 @@ router.get("/data", auth, async (req, res) => {
 router.get("/getUser", async (req, res) => {
     try {
       const user = await User.findById(req.headers.id);
-      res.json(user);
+      res.json(user.username);
     } catch (e) {
       res.send({ message: "Error in fetching user" });
     }
