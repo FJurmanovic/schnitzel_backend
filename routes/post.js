@@ -72,7 +72,7 @@ router.get("/data", auth, async (req, res) => {
       const post = await Post.findById(req.post.id);
       res.json(post);
     } catch (e) {
-      res.send({ message: "Error in Fetching user" });
+      res.send({ message: "Error in fetching post" });
     }
   });
 
@@ -104,7 +104,33 @@ router.get("/home", auth, async (req, res) => {
                 
         });
     } catch (e) {
-        res.send({ message: "Error in fetching user" })
+        res.send({ message: "Error in fetching posts" })
+    }
+});
+
+router.get("/scroll", auth, async (req, res) => {
+    const { current, fit, lastDate, lastId } = req.query;
+
+    try {
+
+        if(lastDate == '' || !lastDate){
+            res.send("First")
+        }else{
+            const post = await Post.find( { $or:[{ createdAt: { $lt: lastDate }}, { $and:[{createdAt: { $eq: lastDate}}, {_id: {$ne: lastId}}]}] } )
+            .limit(10)
+            .sort('-createdAt');
+
+            var postMap = {};
+
+            console.log(post)
+            res.send(post);
+        }
+        
+
+        
+
+    } catch (e) {
+        res.send({ message: "Error in fetchin posts" })
     }
 });
 
