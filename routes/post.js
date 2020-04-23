@@ -80,7 +80,7 @@ router.get("/data", auth, async (req, res) => {
 router.get("/home", auth, async (req, res) => {
     try {
 
-        await Post.find({},function(err, posts){
+        await Post.find({}).sort({createdAt: -1}).exec(function(err, posts){
             var postMap = {};
 
             posts.forEach(async function(post, key) {
@@ -92,7 +92,7 @@ router.get("/home", auth, async (req, res) => {
                 thisPost["userId"] = post.userId;
                 thisPost["username"] = user.username;
                 thisPost["createdAt"] = post.createdAt;
-                postMap[post._id] = thisPost;
+                postMap[key] = thisPost;
                 if (key == posts.length-1){
                     res.json(postMap);
                 }
