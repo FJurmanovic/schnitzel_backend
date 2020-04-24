@@ -38,6 +38,8 @@ router.post(
                 userId
             });
 
+            post.createdAt = new Date();
+
             await post.save();
 
             const payload = {
@@ -122,7 +124,7 @@ router.get("/scroll", auth, async (req, res) => {
 
             var postMap = {};
 
-            console.log(post)
+            console.log(Date())
             res.send(post);
         }
         

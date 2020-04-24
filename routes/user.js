@@ -49,6 +49,10 @@ router.post(
                 password
             });
 
+            
+            user.createdAt = new Date();
+            user.updatedAt = new Date();
+
             const salt = await bcrypt.genSalt(10);
             user.password = await bcrypt.hash(password, salt);
 
@@ -157,7 +161,7 @@ router.post(
     const { email, username, password, id } = req.body;
     try {
       if (email){
-        User.findByIdAndUpdate(id, {email: email}, function(err, ress){
+        User.findByIdAndUpdate(id, {email: email, updatedAt: Date()}, function(err, ress){
           if(err) {
             return res.status(400).json({
               message: err
@@ -168,7 +172,7 @@ router.post(
         })
       }
       if (username){
-        User.findByIdAndUpdate(id, {username: username}, function(err, ress){
+        User.findByIdAndUpdate(id, {username: username, updatedAt: Date()}, function(err, ress){
           if(err) {
             return res.status(400).json({
               message: err
@@ -181,7 +185,7 @@ router.post(
       if (password){
         const salt = await bcrypt.genSalt(10);
         const hashpassword = await bcrypt.hash(password, salt);
-        User.findByIdAndUpdate(id, {password: hashpassword}, function(err, ress){
+        User.findByIdAndUpdate(id, {password: hashpassword, updatedAt: Date()}, function(err, ress){
           if(err) {
             return res.status(400).json({
               message: err
@@ -191,6 +195,27 @@ router.post(
           }
         })
       }
+
+      const payload = {
+        user: {
+          id: id
+        }
+      };
+
+      jwt.sign(
+        payload,
+        "secret",
+        {
+          expiresIn: 3600
+        },
+        (err, token) => {
+          if (err) throw err;
+          res.status(200).json({
+            token
+          });
+        }
+      );
+
     } catch (e) {
       console.error(e);
       res.status(500).json({
