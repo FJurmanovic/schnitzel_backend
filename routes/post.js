@@ -114,18 +114,27 @@ router.get("/scroll", auth, async (req, res) => {
     const { current, fit, lastDate, lastId } = req.query;
 
     try {
-
-        if(lastDate == '' || !lastDate){
-            res.send("First")
+        if((lastDate == '' || !lastDate) || (lastId == '' || !lastId)){
+            console.log("best");
+            const post = await Post.find({}).sort({createdAt: -1}).limit(parseInt(fit));
+            res.send({post, last: false});
         }else{
-            const post = await Post.find( { $or:[{ createdAt: { $lt: lastDate }}, { $and:[{createdAt: { $eq: lastDate}}, {_id: {$ne: lastId}}]}] } )
-            .limit(10)
-            .sort('-createdAt');
+            const postNew = await Post.find( { $or:[{ createdAt: { $lt: lastDate }}, { $and:[{createdAt: { $eq: lastDate}}, {_id: {$ne: lastId}}]}] } )
+            .sort({createdAt: -1});
 
-            var postMap = {};
+            if (postNew.length < fit){
+                console.log("Dada")
+                const post = await Post.find( { $or:[{ createdAt: { $lt: lastDate }}, { $and:[{createdAt: { $eq: lastDate}}, {_id: {$ne: lastId}}]}] } )
+                .sort({createdAt: -1}).limit(postNew.length);
+                res.send({post, last: true});
+                
+            }else{
+                const post = await Post.find( { $or:[{ createdAt: { $lt: lastDate }}, { $and:[{createdAt: { $eq: lastDate}}, {_id: {$ne: lastId}}]}] } )
+                .sort({createdAt: -1}).limit(parseInt(fit));
+                res.send({post, last: false});
+            }
 
-            console.log(Date())
-            res.send(post);
+            
         }
         
 
