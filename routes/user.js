@@ -39,7 +39,18 @@ router.post(
             });
             if (user) {
                 return res.status(400).json({
-                    msg: "User Already Exists"
+                    type: "email",
+                    message: "Email is already registred"
+                });
+            }
+
+            user = await User.findOne({
+                username
+            });
+            if (user) {
+                return res.status(400).json({
+                    type: "username",
+                    message: "Username is already registred"
                 });
             }
 
@@ -109,13 +120,15 @@ router.post(
         });
         if (!user)
           return res.status(400).json({
-            message: "User Not Exist"
+            type: "email",
+            message: "User does not exist"
           });
   
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch)
           return res.status(400).json({
-            message: "Incorrect Password !"
+            type: "password",
+            message: "Incorrect Password!"
           });
   
         const payload = {
@@ -160,10 +173,32 @@ router.post(
 
     const { email, username, password, id } = req.body;
     try {
+
+      let user = await User.findOne({
+          email
+      });
+      if (user) {
+          return res.status(400).json({
+              type: "email",
+              message: "Email is already registred"
+          });
+      }
+
+      user = await User.findOne({
+          username
+      });
+      if (user) {
+          return res.status(400).json({
+              type: "username",
+              message: "Username is already registred"
+          });
+      }
+
       if (email){
         User.findByIdAndUpdate(id, {email: email, updatedAt: Date()}, function(err, ress){
           if(err) {
             return res.status(400).json({
+              type: "email",
               message: err
             });
           }else{
@@ -175,6 +210,7 @@ router.post(
         User.findByIdAndUpdate(id, {username: username, updatedAt: Date()}, function(err, ress){
           if(err) {
             return res.status(400).json({
+              type: "username",
               message: err
             });
           }else{
@@ -188,6 +224,7 @@ router.post(
         User.findByIdAndUpdate(id, {password: hashpassword, updatedAt: Date()}, function(err, ress){
           if(err) {
             return res.status(400).json({
+              type: "email",
               message: err
             });
           }else{
@@ -235,7 +272,10 @@ router.get("/data", auth, async (req, res) => {
       userData["createdAt"] = user.createdAt;
       res.json(userData);
     } catch (e) {
-      res.send({ message: "Error in Fetching user" });
+      res.json({ 
+        type: "fetch",
+        message: "Error in Fetching user" 
+      });
     }
   });
 
@@ -244,7 +284,10 @@ router.get("/getUser", async (req, res) => {
       const user = await User.findById(req.headers.id);
       res.json(user.username);
     } catch (e) {
-      res.send({ message: "Error in fetching user" });
+      res.json({ 
+        type: "fetch",
+        message: "Error in fetching user" 
+      });
     }
 });
 
@@ -252,7 +295,10 @@ router.get("/deactivate", auth, async (req, res) => {
     try {
       const user = await User.findByIdAndDelete(req.user.id);
     } catch (e) {
-      res.send({ message: "Error in deleting user" });
+      res.json({ 
+        type: "deleting",
+        message: "Error in deleting user" 
+      });
     }
 });
 
@@ -260,7 +306,7 @@ router.get("/err", async (req, res) => {
   try {
     res.json(errRoute);
   } catch (e) {
-    res.send({ message: 'Error'});
+    res.json({ message: 'Error'});
   }
 });
   
