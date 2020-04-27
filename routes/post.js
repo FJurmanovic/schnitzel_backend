@@ -191,4 +191,85 @@ router.get("/scroll", auth, async (req, res) => {
     }
 });
 
+router.get("/scrollProfile", async (req, res) => {
+    const { userId, fit, lastDate, lastId } = req.query;
+
+    try {
+        if((lastDate == '' || !lastDate) || (lastId == '' || !lastId)){
+            console.log("best");
+            const post = await Post.find({userId: userId}).sort({createdAt: -1}).limit(parseInt(fit));
+
+            var postMap = {};
+
+            post.forEach(async function(pst, key) {
+                var thisPost = {};
+                const user = await User.findById(pst.userId);
+                thisPost["id"] = pst._id;
+                thisPost["title"] = pst.title;
+                thisPost["content"] = pst.content;
+                thisPost["userId"] = pst.userId;
+                thisPost["username"] = user.username;
+                thisPost["createdAt"] = pst.createdAt;
+                postMap[key] = thisPost;
+                if (key == post.length-1){
+                    res.json({post: postMap, last: false});
+                }
+            });
+
+            //res.send({post, last: false});
+        }else{
+            const postNew = await Post.find( { $and:[{$or:[{ createdAt: { $lt: lastDate }}, { $and:[{createdAt: { $eq: lastDate}}, {_id: {$ne: lastId}}]}]}, {userId: userId}] } )
+            .sort({createdAt: -1});
+
+            if (postNew.length < fit){
+                console.log("Dada")
+                const post = await Post.find( { $and:[{$or:[{ createdAt: { $lt: lastDate }}, { $and:[{createdAt: { $eq: lastDate}}, {_id: {$ne: lastId}}]}]}, {userId: userId}] } )
+                .sort({createdAt: -1}).limit(postNew.length);
+                
+                
+                var postMap = {};
+
+                post.forEach(async function(pst, key) {
+                    var thisPost = {};
+                    const user = await User.findById(pst.userId);
+                    thisPost["id"] = pst._id;
+                    thisPost["title"] = pst.title;
+                    thisPost["content"] = pst.content;
+                    thisPost["userId"] = pst.userId;
+                    thisPost["username"] = user.username;
+                    thisPost["createdAt"] = pst.createdAt;
+                    postMap[key] = thisPost;
+                    if (key == post.length-1){
+                        res.json({post: postMap, last: true});
+                    }
+                });
+                
+            }else{
+                const post = await Post.find( { $and:[{$or:[{ createdAt: { $lt: lastDate }}, { $and:[{createdAt: { $eq: lastDate}}, {_id: {$ne: lastId}}]}]}, {userId: userId}] } )
+                .sort({createdAt: -1}).limit(parseInt(fit));
+                
+                
+                var postMap = {};
+
+                post.forEach(async function(pst, key) {
+                    var thisPost = {};
+                    const user = await User.findById(pst.userId);
+                    thisPost["id"] = pst._id;
+                    thisPost["title"] = pst.title;
+                    thisPost["content"] = pst.content;
+                    thisPost["userId"] = pst.userId;
+                    thisPost["username"] = user.username;
+                    thisPost["createdAt"] = pst.createdAt;
+                    postMap[key] = thisPost;
+                    if (key == post.length-1){
+                        res.json({post: postMap, last: false});
+                    }
+                });
+            }
+        }
+    } catch (e) {
+        res.send({ message: "Error in fetchin posts" })
+    }
+});
+
 module.exports = router;

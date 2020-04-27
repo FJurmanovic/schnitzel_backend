@@ -277,7 +277,24 @@ router.get("/data", auth, async (req, res) => {
         message: "Error in Fetching user" 
       });
     }
-  });
+});
+
+router.get("/dataByUser", async (req, res) => {
+  try {
+    const user = await User.findOne({username: req.headers.username});
+    let userData = {};
+    userData["id"] = user._id;
+    userData["username"] = user.username;
+    userData["email"] = user.email;
+    userData["createdAt"] = user.createdAt;
+    res.json(userData);
+  } catch (e) {
+    res.json({ 
+      type: "fetch",
+      message: "Error in Fetching user" 
+    });
+  }
+});
 
 router.get("/getUser", async (req, res) => {
     try {
