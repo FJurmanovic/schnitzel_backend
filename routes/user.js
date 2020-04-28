@@ -321,8 +321,8 @@ router.get("/follow", auth, async (req, res) => {
     const user = await User.findOne({following: {userId: id}});
     console.log(user)
     if(!user){
-      const newFollowing = await User.findByIdAndUpdate(req.user.id, { '$addToSet': { following: { "userId": id } } });
-      const newFollower = await User.findByIdAndUpdate(id, { '$addToSet': { followers: { "userId": req.user.id } } })
+      const newFollowing = await User.findByIdAndUpdate(req.user.id, { $push: { following: { "userId": id } } });
+      const newFollower = await User.findByIdAndUpdate(id, { $push: { followers: { "userId": req.user.id } } })
       res.json("Added followers");
     }else{
       res.send("Already following");
