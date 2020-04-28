@@ -4,8 +4,13 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const router = express.Router();
 
+const mongoose = require("mongoose");
+
 const User = require("../model/User");
 const auth = require("../middleware/auth");
+
+var Schema = mongoose.Schema,
+    ObjectId = Schema.ObjectId;
 
 let errRoute = {};
 
@@ -269,6 +274,8 @@ router.get("/data", auth, async (req, res) => {
       userData["id"] = user._id;
       userData["username"] = user.username;
       userData["email"] = user.email;
+      userData["following"] = user.following;
+      userData["followers"] = user.followers;
       userData["createdAt"] = user.createdAt;
       res.json(userData);
     } catch (e) {
@@ -306,6 +313,24 @@ router.get("/getUser", async (req, res) => {
         message: "Error in fetching user" 
       });
     }
+});
+
+router.get("/follow", auth, async (req, res) => {
+  const { id } = req.query;
+  try {
+    const user = await User.findOne({following: {userId: id}});
+    console.log(user)
+    if(!user){
+      const newFollowing = await User.findByIdAndUpdate(req.user.id, { '$addToSet': { following: { "userId": id } } });
+      const newFollower = await User.findByIdAndUpdate(id, { '$addToSet': { followers: { "userId": req.user.id } } })
+      res.json("Added followers");
+    }else{
+      res.send("Already following");
+    }
+    
+  } catch {
+
+  }
 });
 
 router.get("/deactivate", auth, async (req, res) => {
