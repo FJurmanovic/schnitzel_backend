@@ -19,8 +19,6 @@ app.use(cors());
 
 app.use('/', express.static(path.join(__dirname, 'dist')))
 
-
-
 app.get("/api", (req, res) => {
   res.json({"api": "working"})
 });

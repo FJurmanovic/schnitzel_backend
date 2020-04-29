@@ -34,6 +34,7 @@ router.post(
         try {
             post = new Post({
                 title,
+                type: "post",
                 content,
                 userId
             });
@@ -122,11 +123,12 @@ router.get("/scroll", auth, async (req, res) => {
 
             var postMap = {};
 
+            let i = 0;
             post.forEach(async function(pst, key) {
                 var thisPost = {};
                 let user = await User.findById(pst.userId);
                     if(user == null){
-                        user= {"username": "DeletedUser"}
+                        user = {"username": "DeletedUser"}
                     }
                 thisPost["id"] = pst._id;
                 thisPost["title"] = pst.title;
@@ -135,9 +137,10 @@ router.get("/scroll", auth, async (req, res) => {
                 thisPost["username"] = user.username;
                 thisPost["createdAt"] = pst.createdAt;
                 postMap[key] = thisPost;
-                if (key == post.length-1){
+                if (i == post.length-1){
                     res.json({post: postMap, last: false});
                 }
+                i++;
             });
 
             //res.send({post, last: false});
@@ -151,7 +154,7 @@ router.get("/scroll", auth, async (req, res) => {
                 
                 
                 var postMap = {};
-
+                let i = 0;
                 post.forEach(async function(pst, key) {
                     var thisPost = {};
                     let user = await User.findById(pst.userId);
@@ -165,9 +168,10 @@ router.get("/scroll", auth, async (req, res) => {
                     thisPost["username"] = user.username;
                     thisPost["createdAt"] = pst.createdAt;
                     postMap[key] = thisPost;
-                    if (key == post.length-1){
+                    if (i == post.length-1){
                         res.json({post: postMap, last: true});
                     }
+                    i++
                 });
                 
             }else{
@@ -176,7 +180,7 @@ router.get("/scroll", auth, async (req, res) => {
                 
                 
                 var postMap = {};
-
+                let i = 0;
                 post.forEach(async function(pst, key) {
                     var thisPost = {};
                     let user = await User.findById(pst.userId);
@@ -190,9 +194,10 @@ router.get("/scroll", auth, async (req, res) => {
                     thisPost["username"] = user.username;
                     thisPost["createdAt"] = pst.createdAt;
                     postMap[key] = thisPost;
-                    if (key == post.length-1){
+                    if (i == post.length-1){
                         res.json({post: postMap, last: false});
                     }
+                    i++
                 });
             }
         }
@@ -209,7 +214,7 @@ router.get("/scrollProfile", async (req, res) => {
             const post = await Post.find({userId: userId}).sort({createdAt: -1}).limit(parseInt(fit));
 
             var postMap = {};
-
+            let i = 0;
             post.forEach(async function(pst, key) {
                 var thisPost = {};
                 let user = await User.findById(pst.userId);
@@ -223,9 +228,10 @@ router.get("/scrollProfile", async (req, res) => {
                 thisPost["username"] = user.username;
                 thisPost["createdAt"] = pst.createdAt;
                 postMap[key] = thisPost;
-                if (key == post.length-1){
+                if (i == post.length-1){
                     res.json({post: postMap, last: false});
                 }
+                i++
             });
 
             //res.send({post, last: false});
@@ -240,7 +246,7 @@ router.get("/scrollProfile", async (req, res) => {
                 
                 
                 var postMap = {};
-
+                let i = 0;
                 post.forEach(async function(pst, key) {
                     var thisPost = {};
                     let user = await User.findById(pst.userId);
@@ -254,9 +260,10 @@ router.get("/scrollProfile", async (req, res) => {
                     thisPost["username"] = user.username;
                     thisPost["createdAt"] = pst.createdAt;
                     postMap[key] = thisPost;
-                    if (key == post.length-1){
+                    if (i == post.length-1){
                         res.json({post: postMap, last: true});
                     }
+                    i++;
                 });
                 
             }else{
@@ -265,7 +272,7 @@ router.get("/scrollProfile", async (req, res) => {
                 
                 
                 var postMap = {};
-
+                let i = 0;
                 post.forEach(async function(pst, key) {
                     var thisPost = {};
                     let user = await User.findById(pst.userId);
@@ -279,9 +286,10 @@ router.get("/scrollProfile", async (req, res) => {
                     thisPost["username"] = user.username;
                     thisPost["createdAt"] = pst.createdAt;
                     postMap[key] = thisPost;
-                    if (key == post.length-1){
+                    if (i == post.length-1){
                         res.json({post: postMap, last: false});
                     }
+                    i++
                 });
             }
         }
