@@ -11,17 +11,20 @@ const app = express();
 
 const PORT = process.env.PORT || 4000;
 
+
 app.use(bodyParser.json());
 
 app.use(cors());
 
-app.get("/", (req, res) => {
-  res.json({ message: "API Working" });
+app.get("/api", (req, res) => {
+  res.json({"api": "working"})
 });
 
-app.use("/user", user);
+app.use("/api/user", user);
 
-app.use("/post", post);
+app.use("/api/post", post);
+
+
 
 app.listen(PORT, (req, res) => {
   console.log(`Server Started at PORT ${PORT}`);
