@@ -274,10 +274,59 @@ router.get("/data", auth, async (req, res) => {
       userData["id"] = user._id;
       userData["username"] = user.username;
       userData["email"] = user.email;
-      userData["following"] = user.following;
-      userData["followers"] = user.followers;
       userData["createdAt"] = user.createdAt;
-      res.json(userData);
+
+      let { following, followers } = user;
+
+      //console.log(following)
+      let newFollowing = []
+      if(following.length > 0){
+        following.forEach(async function(resp, key){
+          const userr = await User.findById(resp.userId);
+          newFollowing[key] = {
+            "userId": resp.userId,
+            "username": userr.username
+          };
+          if (key == following.length-1){
+            userData["following"] = newFollowing;
+            let newFollowers = []
+            if(followers.length > 0){
+              followers.forEach(async function(respp, keyy){
+                const userrr = await User.findById(respp.userId);
+                newFollowers[keyy] = {
+                  "userId": respp.userId,
+                  "username": userrr.username
+                };
+                if (keyy == followers.length-1){
+                  userData["followers"] = newFollowers;
+                  res.json(userData)
+                }
+              });
+            } else {
+              res.json(userData);
+            }
+          }
+        })
+
+      }else if(followers.length > 0){
+        let newFollowers = []
+        followers.forEach(async function(respp, keyy){
+          const userrr = await User.findById(respp.userId);
+          newFollowers[keyy] = {
+            "userId": respp.userId,
+            "username": userrr.username
+          };
+          if (keyy == followers.length-1){
+            userData["followers"] = newFollowers;
+            userData["following"] = [];
+            res.json(userData)
+          }
+        });
+      } else {
+        userData["followers"] = [];
+        userData["following"] = [];
+        res.json(userData)
+      }
     } catch (e) {
       res.json({ 
         type: "fetch",
@@ -319,7 +368,6 @@ router.get("/follow", auth, async (req, res) => {
   const { id } = req.query;
   try {
     const user = await User.findOne({following: {userId: id}});
-    console.log(user)
     if(!user){
       const newFollowing = await User.findByIdAndUpdate(req.user.id, { $push: { following: { "userId": id } } });
       const newFollower = await User.findByIdAndUpdate(id, { $push: { followers: { "userId": req.user.id } } })
@@ -348,6 +396,39 @@ router.get("/unfollow", auth, async (req, res) => {
   } catch {
 
   }
+});
+
+router.post("/getFollowerUsernames", auth, async (req, res) => {
+  let { following, followers } = req.body.user;
+
+  //console.log(following)
+  let newFollowing = []
+  following.forEach(async function(resp, key){
+    const user = await User.findById(resp.userId);
+    resp["username"] = user.username;
+    newFollowing[key] = resp;
+    if (key == following.length-1){
+      let newFollowers = []
+      //console.log(newFollowing);
+
+      if(followers.length > 0){
+        followers.forEach(async function(respp, keyy){
+          const userr = await User.findById(respp.userId);
+          respp["username"] = userr.username;
+          newFollowers[keyy] = respp;
+          //console.log(newFollowing)
+          if (keyy == followers.length-1){
+            //console.log(newFollowers)
+            res.json({"following": newFollowing, "followers": newFollowers});
+          }
+        });
+      } else {
+        res.json({"following": newFollowing, "followers": newFollowers});
+      }
+      
+      
+  }
+  })
 });
 
 router.get("/deactivate", auth, async (req, res) => {
