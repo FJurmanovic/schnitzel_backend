@@ -3,6 +3,7 @@ const bodyParser = require("body-parser");
 const InitiateMongoServer = require("./config/db");
 const user = require("./routes/user");
 const post = require("./routes/post");
+var path = require('path');
 
 var cors = require("cors");
 InitiateMongoServer();
@@ -15,6 +16,10 @@ const PORT = process.env.PORT || 4000;
 app.use(bodyParser.json());
 
 app.use(cors());
+
+app.use('/', express.static(path.join(__dirname, 'dist')))
+
+
 
 app.get("/api", (req, res) => {
   res.json({"api": "working"})
