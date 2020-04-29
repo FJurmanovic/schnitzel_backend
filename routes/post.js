@@ -87,7 +87,10 @@ router.get("/home", auth, async (req, res) => {
 
             posts.forEach(async function(post, key) {
                 var thisPost = {};
-                const user = await User.findById(post.userId);
+                let user = await User.findById(pst.userId);
+                    if(user == null){
+                        user= {"username": "DeletedUser"}
+                    }
                 thisPost["id"] = post._id;
                 thisPost["title"] = post.title;
                 thisPost["content"] = post.content;
@@ -115,14 +118,16 @@ router.get("/scroll", auth, async (req, res) => {
 
     try {
         if((lastDate == '' || !lastDate) || (lastId == '' || !lastId)){
-            console.log("best");
             const post = await Post.find({}).sort({createdAt: -1}).limit(parseInt(fit));
 
             var postMap = {};
 
             post.forEach(async function(pst, key) {
                 var thisPost = {};
-                const user = await User.findById(pst.userId);
+                let user = await User.findById(pst.userId);
+                    if(user == null){
+                        user= {"username": "DeletedUser"}
+                    }
                 thisPost["id"] = pst._id;
                 thisPost["title"] = pst.title;
                 thisPost["content"] = pst.content;
@@ -141,7 +146,6 @@ router.get("/scroll", auth, async (req, res) => {
             .sort({createdAt: -1});
 
             if (postNew.length < fit){
-                console.log("Dada")
                 const post = await Post.find( { $or:[{ createdAt: { $lt: lastDate }}, { $and:[{createdAt: { $eq: lastDate}}, {_id: {$ne: lastId}}]}] } )
                 .sort({createdAt: -1}).limit(postNew.length);
                 
@@ -150,7 +154,10 @@ router.get("/scroll", auth, async (req, res) => {
 
                 post.forEach(async function(pst, key) {
                     var thisPost = {};
-                    const user = await User.findById(pst.userId);
+                    let user = await User.findById(pst.userId);
+                    if(user == null){
+                        user= {"username": "DeletedUser"}
+                    }
                     thisPost["id"] = pst._id;
                     thisPost["title"] = pst.title;
                     thisPost["content"] = pst.content;
@@ -172,7 +179,10 @@ router.get("/scroll", auth, async (req, res) => {
 
                 post.forEach(async function(pst, key) {
                     var thisPost = {};
-                    const user = await User.findById(pst.userId);
+                    let user = await User.findById(pst.userId);
+                    if(user == null){
+                        user= {"username": "DeletedUser"}
+                    }
                     thisPost["id"] = pst._id;
                     thisPost["title"] = pst.title;
                     thisPost["content"] = pst.content;
@@ -196,14 +206,16 @@ router.get("/scrollProfile", async (req, res) => {
 
     try {
         if((lastDate == '' || !lastDate) || (lastId == '' || !lastId)){
-            console.log("best");
             const post = await Post.find({userId: userId}).sort({createdAt: -1}).limit(parseInt(fit));
 
             var postMap = {};
 
             post.forEach(async function(pst, key) {
                 var thisPost = {};
-                const user = await User.findById(pst.userId);
+                let user = await User.findById(pst.userId);
+                    if(user == null){
+                        user= {"username": "DeletedUser"}
+                    }
                 thisPost["id"] = pst._id;
                 thisPost["title"] = pst.title;
                 thisPost["content"] = pst.content;
@@ -231,7 +243,10 @@ router.get("/scrollProfile", async (req, res) => {
 
                 post.forEach(async function(pst, key) {
                     var thisPost = {};
-                    const user = await User.findById(pst.userId);
+                    let user = await User.findById(pst.userId);
+                    if(user == null){
+                        user= {"username": "DeletedUser"}
+                    }
                     thisPost["id"] = pst._id;
                     thisPost["title"] = pst.title;
                     thisPost["content"] = pst.content;
@@ -253,7 +268,10 @@ router.get("/scrollProfile", async (req, res) => {
 
                 post.forEach(async function(pst, key) {
                     var thisPost = {};
-                    const user = await User.findById(pst.userId);
+                    let user = await User.findById(pst.userId);
+                    if(user == null){
+                        user= {"username": "DeletedUser"}
+                    }
                     thisPost["id"] = pst._id;
                     thisPost["title"] = pst.title;
                     thisPost["content"] = pst.content;

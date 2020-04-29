@@ -333,6 +333,23 @@ router.get("/follow", auth, async (req, res) => {
   }
 });
 
+router.get("/unfollow", auth, async (req, res) => {
+  const { id } = req.query;
+  try {
+    const user = await User.findById(req.user.id);
+    if(!(!user)){
+      const newFollowing = await User.findByIdAndUpdate(req.user.id, { $pull: { following: { "userId": id } } });
+      const newFollower = await User.findByIdAndUpdate(id, { $pull: { followers: { "userId": req.user.id } } })
+      res.json("Removed followers");
+    }else{
+      res.send("Not following");
+    }
+    
+  } catch {
+
+  }
+});
+
 router.get("/deactivate", auth, async (req, res) => {
     try {
       const user = await User.findByIdAndDelete(req.user.id);
