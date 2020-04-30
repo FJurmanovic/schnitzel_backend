@@ -178,52 +178,53 @@ router.post(
 
     const { email, username, password, id } = req.body;
     try {
-
-      let user = await User.findOne({
+      
+      if(!(!email)){
+        let user = await User.findOne({
           email
-      });
-      if (user) {
-          return res.status(400).json({
-              type: "email",
-              message: "Email is already registred"
-          });
-      }
-
-      user = await User.findOne({
-          username
-      });
-      if (user) {
-          return res.status(400).json({
-              type: "username",
-              message: "Username is already registred"
-          });
-      }
-
-      if (email){
-        User.findByIdAndUpdate(id, {email: email, updatedAt: Date()}, function(err, ress){
-          if(err) {
+        });
+        if (user) {
             return res.status(400).json({
-              type: "email",
-              message: err
-            });
-          }else{
-            console.log(ress)
-          }
-        })
+                type: "email",
+                message: "Email is already registred"
+          });
+        } else {
+          User.findByIdAndUpdate(id, {email: email, updatedAt: Date()}, function(err, ress){
+            if(err) {
+              return res.status(400).json({
+                type: "email",
+                message: err
+              });
+            }else{
+              console.log(ress)
+            }
+          })
+        }
       }
-      if (username){
-        User.findByIdAndUpdate(id, {username: username, updatedAt: Date()}, function(err, ress){
-          if(err) {
+      
+      if(!(!username)){
+        user = await User.findOne({
+            username
+        });
+        if (user) {
             return res.status(400).json({
-              type: "username",
-              message: err
-            });
-          }else{
-            console.log(ress)
-          }
-        })
+                type: "username",
+                message: "Username is already registred"
+          });
+        } else {
+          User.findByIdAndUpdate(id, {username: username, updatedAt: Date()}, function(err, ress){
+            if(err) {
+              return res.status(400).json({
+                type: "username",
+                message: err
+              });
+            }else{
+              console.log(ress)
+            }
+          })
+        }
       }
-      if (password){
+      if (!(!password)){
         const salt = await bcrypt.genSalt(10);
         const hashpassword = await bcrypt.hash(password, salt);
         User.findByIdAndUpdate(id, {password: hashpassword, updatedAt: Date()}, function(err, ress){
@@ -283,20 +284,24 @@ router.get("/data", auth, async (req, res) => {
       if(following.length > 0){
         following.forEach(async function(resp, key){
           const userr = await User.findById(resp.userId);
-          newFollowing[key] = {
-            "userId": resp.userId,
-            "username": userr.username
-          };
+          if(!(userr === null)){ 
+            newFollowing[key] = {
+              "userId": resp.userId,
+              "username": userr.username
+            };
+          }
           if (key == following.length-1){
             userData["following"] = newFollowing;
             let newFollowers = []
             if(followers.length > 0){
               followers.forEach(async function(respp, keyy){
                 const userrr = await User.findById(respp.userId);
-                newFollowers[keyy] = {
-                  "userId": respp.userId,
-                  "username": userrr.username
-                };
+                if(!(userrr === null)){ 
+                  newFollowers[key] = {
+                    "userId": resp.userId,
+                    "username": userrr.username
+                  };
+                }
                 if (keyy == followers.length-1){
                   userData["followers"] = newFollowers;
                   res.json(userData)
@@ -312,10 +317,12 @@ router.get("/data", auth, async (req, res) => {
         let newFollowers = []
         followers.forEach(async function(respp, keyy){
           const userrr = await User.findById(respp.userId);
-          newFollowers[keyy] = {
-            "userId": respp.userId,
-            "username": userrr.username
-          };
+          if(!(userrr === null)){ 
+            newFollowers[key] = {
+              "userId": resp.userId,
+              "username": userr.username
+            };
+          }
           if (keyy == followers.length-1){
             userData["followers"] = newFollowers;
             userData["following"] = [];
@@ -434,6 +441,7 @@ router.post("/getFollowerUsernames", auth, async (req, res) => {
 router.get("/deactivate", auth, async (req, res) => {
     try {
       const user = await User.findByIdAndDelete(req.user.id);
+      res.send("Succesfully deactivated")
     } catch (e) {
       res.json({ 
         type: "deleting",
