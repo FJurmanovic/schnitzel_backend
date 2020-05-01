@@ -297,8 +297,8 @@ router.get("/data", auth, async (req, res) => {
               followers.forEach(async function(respp, keyy){
                 const userrr = await User.findById(respp.userId);
                 if(!(userrr === null)){ 
-                  newFollowers[key] = {
-                    "userId": resp.userId,
+                  newFollowers[keyy] = {
+                    "userId": respp.userId,
                     "username": userrr.username
                   };
                 }
@@ -319,8 +319,8 @@ router.get("/data", auth, async (req, res) => {
           const userrr = await User.findById(respp.userId);
           if(!(userrr === null)){ 
             newFollowers[key] = {
-              "userId": resp.userId,
-              "username": userr.username
+              "userId": respp.userId,
+              "username": userrr.username
             };
           }
           if (keyy == followers.length-1){
@@ -405,37 +405,76 @@ router.get("/unfollow", auth, async (req, res) => {
   }
 });
 
-router.post("/getFollowerUsernames", auth, async (req, res) => {
-  let { following, followers } = req.body.user;
+router.post("/getFollowerUsernames", async (req, res) => {
+  let { id } = req.body;
 
-  //console.log(following)
-  let newFollowing = []
-  following.forEach(async function(resp, key){
-    const user = await User.findById(resp.userId);
-    resp["username"] = user.username;
-    newFollowing[key] = resp;
-    if (key == following.length-1){
-      let newFollowers = []
-      //console.log(newFollowing);
+  try {
+    const user = await User.findById(id);
+    let userData = {};
 
-      if(followers.length > 0){
-        followers.forEach(async function(respp, keyy){
-          const userr = await User.findById(respp.userId);
-          respp["username"] = userr.username;
-          newFollowers[keyy] = respp;
-          //console.log(newFollowing)
-          if (keyy == followers.length-1){
-            //console.log(newFollowers)
-            res.json({"following": newFollowing, "followers": newFollowers});
+    let { following, followers } = user;
+
+    //console.log(following)
+    let newFollowing = []
+    if(following.length > 0){
+      following.forEach(async function(resp, key){
+        const userr = await User.findById(resp.userId);
+        if(!(userr === null)){ 
+          newFollowing[key] = {
+            "userId": resp.userId,
+            "username": userr.username
+          };
+        }
+        if (key == following.length-1){
+          userData["following"] = newFollowing;
+          let newFollowers = []
+          if(followers.length > 0){
+            followers.forEach(async function(respp, keyy){
+              const userrr = await User.findById(respp.userId);
+              if(!(userrr === null)){ 
+                newFollowers[key] = {
+                  "userId": respp.userId,
+                  "username": userrr.username
+                };
+              }
+              if (keyy == followers.length-1){
+                userData["followers"] = newFollowers;
+                res.json(userData)
+              }
+            });
+          } else {
+            res.json(userData);
           }
-        });
-      } else {
-        res.json({"following": newFollowing, "followers": newFollowers});
-      }
-      
-      
+        }
+      })
+
+    }else if(followers.length > 0){
+      let newFollowers = []
+      followers.forEach(async function(respp, keyy){
+        const userrr = await User.findById(respp.userId);
+        if(!(userrr === null)){ 
+          newFollowers[keyy] = {
+            "userId": respp.userId,
+            "username": userrr.username
+          };
+        }
+        if (keyy == followers.length-1){
+          userData["followers"] = newFollowers;
+          userData["following"] = [];
+          res.json(userData)
+        }
+      });
+    } else {
+      userData["followers"] = [];
+      userData["following"] = [];
+      res.json(userData)
+    }
+  } catch (e) {
+    res.json({ 
+      type: "fetch",
+      message: "Error in Fetching user" 
+    });
   }
-  })
 });
 
 router.get("/deactivate", auth, async (req, res) => {
