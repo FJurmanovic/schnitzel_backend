@@ -308,6 +308,7 @@ router.get("/data", auth, async (req, res) => {
                 }
               });
             } else {
+              userData["followers"] = []
               res.json(userData);
             }
           }
@@ -318,7 +319,7 @@ router.get("/data", auth, async (req, res) => {
         followers.forEach(async function(respp, keyy){
           const userrr = await User.findById(respp.userId);
           if(!(userrr === null)){ 
-            newFollowers[key] = {
+            newFollowers[keyy] = {
               "userId": respp.userId,
               "username": userrr.username
             };
@@ -371,13 +372,13 @@ router.get("/getUser", async (req, res) => {
     }
 });
 
-router.get("/follow", auth, async (req, res) => {
-  const { id } = req.query;
+router.get("/follow", async (req, res) => {
+  const { idUser, id } = req.query;
   try {
     const user = await User.findOne({following: {userId: id}});
     if(!user){
-      const newFollowing = await User.findByIdAndUpdate(req.user.id, { $push: { following: { "userId": id } } });
-      const newFollower = await User.findByIdAndUpdate(id, { $push: { followers: { "userId": req.user.id } } })
+      const newFollowing = await User.findByIdAndUpdate(idUser, { $push: { following: { "userId": id } } });
+      const newFollower = await User.findByIdAndUpdate(id, { $push: { followers: { "userId": idUser } } })
       res.json("Added followers");
     }else{
       res.send("Already following");
@@ -388,13 +389,13 @@ router.get("/follow", auth, async (req, res) => {
   }
 });
 
-router.get("/unfollow", auth, async (req, res) => {
-  const { id } = req.query;
+router.get("/unfollow", async (req, res) => {
+  const { idUser, id } = req.query;
   try {
-    const user = await User.findById(req.user.id);
+    const user = await User.findById(idUser);
     if(!(!user)){
-      const newFollowing = await User.findByIdAndUpdate(req.user.id, { $pull: { following: { "userId": id } } });
-      const newFollower = await User.findByIdAndUpdate(id, { $pull: { followers: { "userId": req.user.id } } })
+      const newFollowing = await User.findByIdAndUpdate(idUser, { $pull: { following: { "userId": id } } });
+      const newFollower = await User.findByIdAndUpdate(id, { $pull: { followers: { "userId": idUser } } })
       res.json("Removed followers");
     }else{
       res.send("Not following");
