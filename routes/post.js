@@ -8,6 +8,7 @@ const Post = require("../model/Post");
 const User = require("../model/User");
 
 const auth = require("../middleware/post");
+const user = require("../middleware/auth");
 
 router.post(
     "/create",
@@ -114,7 +115,7 @@ router.get("/home", auth, async (req, res) => {
     }
 });
 
-router.get("/scroll", auth, async (req, res) => {
+router.get("/scroll", user, async (req, res) => {
     const { current, fit, lastDate, lastId } = req.query;
 
     try {
@@ -124,19 +125,25 @@ router.get("/scroll", auth, async (req, res) => {
             var postMap = {};
 
             let i = 0;
-            post.forEach(async function(pst, key) {
+            post.map(async function(pst, key) {
+                console.log(pst)
                 var thisPost = {};
                 let user = await User.findById(pst.userId);
                     if(user == null){
                         user = {"username": "DeletedUser"}
                     }
-                thisPost["id"] = pst._id;
-                thisPost["title"] = pst.title;
-                thisPost["content"] = pst.content;
-                thisPost["userId"] = pst.userId;
-                thisPost["username"] = user.username;
-                thisPost["createdAt"] = pst.createdAt;
-                postMap[key] = thisPost;
+                let isFollowing = await User.findById(req.user.id)
+                let check = isFollowing.following.map(follower => follower.userId == user.id)[0]
+                
+                if (check || req.user.id == pst.userId || user.username == "DeletedUser"){
+                    thisPost["id"] = pst._id;
+                    thisPost["title"] = pst.title;
+                    thisPost["content"] = pst.content;
+                    thisPost["userId"] = pst.userId;
+                    thisPost["username"] = user.username;
+                    thisPost["createdAt"] = pst.createdAt;
+                    postMap[pst._id] = thisPost;
+                }
                 if (i == post.length-1){
                     res.json({post: postMap, last: false});
                 }
@@ -159,19 +166,24 @@ router.get("/scroll", auth, async (req, res) => {
                     var thisPost = {};
                     let user = await User.findById(pst.userId);
                     if(user == null){
-                        user= {"username": "DeletedUser"}
+                        user = {"username": "DeletedUser"}
                     }
-                    thisPost["id"] = pst._id;
-                    thisPost["title"] = pst.title;
-                    thisPost["content"] = pst.content;
-                    thisPost["userId"] = pst.userId;
-                    thisPost["username"] = user.username;
-                    thisPost["createdAt"] = pst.createdAt;
-                    postMap[key] = thisPost;
+                    let isFollowing = await User.findById(req.user.id)
+                    let check = isFollowing.following.map(follower => follower.userId == user.id)[0]
+                    
+                    if (check || req.user.id == pst.userId || user.username == "DeletedUser"){
+                        thisPost["id"] = pst._id;
+                        thisPost["title"] = pst.title;
+                        thisPost["content"] = pst.content;
+                        thisPost["userId"] = pst.userId;
+                        thisPost["username"] = user.username;
+                        thisPost["createdAt"] = pst.createdAt;
+                        postMap[pst._id] = thisPost;
+                    }
                     if (i == post.length-1){
-                        res.json({post: postMap, last: true});
+                        res.json({post: postMap, last: false});
                     }
-                    i++
+                    i++;
                 });
                 
             }else{
@@ -185,19 +197,24 @@ router.get("/scroll", auth, async (req, res) => {
                     var thisPost = {};
                     let user = await User.findById(pst.userId);
                     if(user == null){
-                        user= {"username": "DeletedUser"}
+                        user = {"username": "DeletedUser"}
                     }
-                    thisPost["id"] = pst._id;
-                    thisPost["title"] = pst.title;
-                    thisPost["content"] = pst.content;
-                    thisPost["userId"] = pst.userId;
-                    thisPost["username"] = user.username;
-                    thisPost["createdAt"] = pst.createdAt;
-                    postMap[key] = thisPost;
+                    let isFollowing = await User.findById(req.user.id)
+                    let check = isFollowing.following.map(follower => follower.userId == user.id)[0]
+                    
+                    if (check || req.user.id == pst.userId || user.username == "DeletedUser"){
+                        thisPost["id"] = pst._id;
+                        thisPost["title"] = pst.title;
+                        thisPost["content"] = pst.content;
+                        thisPost["userId"] = pst.userId;
+                        thisPost["username"] = user.username;
+                        thisPost["createdAt"] = pst.createdAt;
+                        postMap[pst._id] = thisPost;
+                    }
                     if (i == post.length-1){
                         res.json({post: postMap, last: false});
                     }
-                    i++
+                    i++;
                 });
             }
         }
@@ -205,6 +222,22 @@ router.get("/scroll", auth, async (req, res) => {
         res.send({ message: "Error in fetchin posts" })
     }
 });
+
+router.get("/removePost", user, async (req, res) => {
+    const { idPost } = req.query;
+    try {
+      const post = await Post.findById(idPost);
+      if(!(!post) && (post.userId == req.user.id)){
+        const removePost = await Post.findByIdAndRemove(idPost);
+        res.json("Removed post");
+      }else{
+        res.send("Not your post");
+      }
+      
+    } catch(e) {
+        res.send({ message: "Error in fetchin posts" })
+    }
+  });
 
 router.get("/scrollProfile", async (req, res) => {
     const { userId, fit, lastDate, lastId } = req.query;
