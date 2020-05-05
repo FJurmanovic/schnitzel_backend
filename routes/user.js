@@ -36,7 +36,8 @@ router.post(
         const {
             username,
             email,
-            password
+            password,
+            isPrivate
         } = req.body;
         try {
             let user = await User.findOne({
@@ -62,7 +63,8 @@ router.post(
             user = new User({
                 username,
                 email,
-                password
+                password,
+                isPrivate
             });
 
             
@@ -176,10 +178,10 @@ router.post(
       });
     }
 
-    const { email, username, password, id } = req.body;
+    const { email, username, password, isPrivate, id } = req.body;
     try {
       
-      if(!(!email)){
+      if('email' in req.body){
         let user = await User.findOne({
           email
         });
@@ -202,7 +204,7 @@ router.post(
         }
       }
       
-      if(!(!username)){
+      if('username' in req.body){
         user = await User.findOne({
             username
         });
@@ -224,13 +226,25 @@ router.post(
           })
         }
       }
-      if (!(!password)){
+      if ('password' in req.body){
         const salt = await bcrypt.genSalt(10);
         const hashpassword = await bcrypt.hash(password, salt);
         User.findByIdAndUpdate(id, {password: hashpassword, updatedAt: Date()}, function(err, ress){
           if(err) {
             return res.status(400).json({
               type: "email",
+              message: err
+            });
+          }else{
+            //console.log(ress)
+          }
+        })
+      }
+      if ('isPrivate' in req.body){
+        User.findByIdAndUpdate(id, {isPrivate: isPrivate, updatedAt: Date()}, function(err, ress){
+          if(err) {
+            return res.status(400).json({
+              type: "privacy",
               message: err
             });
           }else{
@@ -276,6 +290,7 @@ router.get("/data", auth, async (req, res) => {
       userData["username"] = user.username;
       userData["email"] = user.email;
       userData["createdAt"] = user.createdAt;
+      userData["isPrivate"] = user.isPrivate;
 
       let { following, followers } = user;
 
@@ -350,6 +365,7 @@ router.get("/dataByUser", async (req, res) => {
     userData["id"] = user._id;
     userData["username"] = user.username;
     userData["email"] = user.email;
+    userData["isPrivate"] = user.isPrivate;
     userData["createdAt"] = user.createdAt;
     res.json(userData);
   } catch (e) {

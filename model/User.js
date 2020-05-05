@@ -16,6 +16,10 @@ const UserSchema = mongoose.Schema({
     type: String,
     required: true
   },
+  isPrivate: {
+    type: Boolean,
+    required: true
+  },
   following: [{
     userId: String
   }],

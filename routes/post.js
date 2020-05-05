@@ -122,7 +122,7 @@ router.get("/scroll", user, async (req, res) => {
         if((lastDate == '' || !lastDate) || (lastId == '' || !lastId)){
             const post = await Post.find({}).sort({createdAt: -1}).limit(parseInt(fit));
 
-            var postMap = {};
+            var postMap = [];
 
             let i = 0;
             post.map(async function(pst, key) {
@@ -135,14 +135,14 @@ router.get("/scroll", user, async (req, res) => {
                 let isFollowing = await User.findById(req.user.id)
                 let check = isFollowing.following.map(follower => follower.userId == user.id)[0]
                 
-                if (check || req.user.id == pst.userId || user.username == "DeletedUser"){
+                if (check || req.user.id == pst.userId){
                     thisPost["id"] = pst._id;
                     thisPost["title"] = pst.title;
                     thisPost["content"] = pst.content;
                     thisPost["userId"] = pst.userId;
                     thisPost["username"] = user.username;
                     thisPost["createdAt"] = pst.createdAt;
-                    postMap[pst._id] = thisPost;
+                    postMap.push(thisPost);
                 }
                 if (i == post.length-1){
                     res.json({post: postMap, last: false});
@@ -160,7 +160,7 @@ router.get("/scroll", user, async (req, res) => {
                 .sort({createdAt: -1}).limit(postNew.length);
                 
                 
-                var postMap = {};
+                var postMap = [];
                 let i = 0;
                 post.forEach(async function(pst, key) {
                     var thisPost = {};
@@ -171,14 +171,14 @@ router.get("/scroll", user, async (req, res) => {
                     let isFollowing = await User.findById(req.user.id)
                     let check = isFollowing.following.map(follower => follower.userId == user.id)[0]
                     
-                    if (check || req.user.id == pst.userId || user.username == "DeletedUser"){
+                    if (check || req.user.id == pst.userId){
                         thisPost["id"] = pst._id;
                         thisPost["title"] = pst.title;
                         thisPost["content"] = pst.content;
                         thisPost["userId"] = pst.userId;
                         thisPost["username"] = user.username;
                         thisPost["createdAt"] = pst.createdAt;
-                        postMap[pst._id] = thisPost;
+                        postMap.push(thisPost);
                     }
                     if (i == post.length-1){
                         res.json({post: postMap, last: false});
@@ -191,7 +191,7 @@ router.get("/scroll", user, async (req, res) => {
                 .sort({createdAt: -1}).limit(parseInt(fit));
                 
                 
-                var postMap = {};
+                var postMap = [];
                 let i = 0;
                 post.forEach(async function(pst, key) {
                     var thisPost = {};
@@ -202,14 +202,14 @@ router.get("/scroll", user, async (req, res) => {
                     let isFollowing = await User.findById(req.user.id)
                     let check = isFollowing.following.map(follower => follower.userId == user.id)[0]
                     
-                    if (check || req.user.id == pst.userId || user.username == "DeletedUser"){
+                    if (check || req.user.id == pst.userId){
                         thisPost["id"] = pst._id;
                         thisPost["title"] = pst.title;
                         thisPost["content"] = pst.content;
                         thisPost["userId"] = pst.userId;
                         thisPost["username"] = user.username;
                         thisPost["createdAt"] = pst.createdAt;
-                        postMap[pst._id] = thisPost;
+                        postMap.push(thisPost);
                     }
                     if (i == post.length-1){
                         res.json({post: postMap, last: false});
