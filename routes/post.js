@@ -16,7 +16,7 @@ router.post(
         check("title", "Please Enter a Valid Title")
         .not()
         .isEmpty(),
-        check("content", "Please enter a valid content").not()
+        check("description", "Please enter a valid description").not()
         .isEmpty(),
         check("userId", "Invalid userId").not()
         .isEmpty(),
@@ -29,17 +29,30 @@ router.post(
 
         const {
             title,
-            content,
-            userId
+            type,
+            description,
+            userId,
+            ingredients,
+            directions
         } = req.body;
         try {
-            post = new Post({
-                title,
-                type: "post",
-                content,
-                userId
-            });
-
+            if(type === "post"){
+                post = new Post({
+                    title,
+                    type: "post",
+                    description,
+                    userId
+                });
+            }else if(type === "recipe"){
+                post = new Post({
+                    title,
+                    type,
+                    description,
+                    userId,
+                    ingredients,
+                    directions
+                })
+            }
             post.createdAt = new Date();
 
             await post.save();
@@ -95,7 +108,7 @@ router.get("/home", auth, async (req, res) => {
                     }
                 thisPost["id"] = post._id;
                 thisPost["title"] = post.title;
-                thisPost["content"] = post.content;
+                thisPost["description"] = post.description;
                 thisPost["userId"] = post.userId;
                 thisPost["username"] = user.username;
                 thisPost["createdAt"] = post.createdAt;
@@ -138,8 +151,13 @@ router.get("/scroll", user, async (req, res) => {
                 if (check || req.user.id == pst.userId || user.username === "DeletedUser"){
                     thisPost["id"] = pst._id;
                     thisPost["title"] = pst.title;
-                    thisPost["content"] = pst.content;
+                    thisPost["type"] = pst.type;
+                    thisPost["description"] = pst.description;
                     thisPost["userId"] = pst.userId;
+                    if(pst.type == "recipe"){
+                        thisPost["ingredients"] = pst.ingredients;
+                        thisPost["directions"] = pst.directions;
+                    }
                     thisPost["username"] = user.username;
                     thisPost["createdAt"] = pst.createdAt;
                     postMap.push(thisPost);
@@ -174,7 +192,12 @@ router.get("/scroll", user, async (req, res) => {
                     if (check || req.user.id == pst.userId || user.username === "DeletedUser"){
                         thisPost["id"] = pst._id;
                         thisPost["title"] = pst.title;
-                        thisPost["content"] = pst.content;
+                        thisPost["type"] = pst.type;
+                        thisPost["description"] = pst.description;
+                        if(pst.type == "recipe"){
+                            thisPost["ingredients"] = pst.ingredients;
+                            thisPost["directions"] = pst.directions;
+                        }
                         thisPost["userId"] = pst.userId;
                         thisPost["username"] = user.username;
                         thisPost["createdAt"] = pst.createdAt;
@@ -205,7 +228,12 @@ router.get("/scroll", user, async (req, res) => {
                     if (check || req.user.id == pst.userId || user.username === "DeletedUser"){
                         thisPost["id"] = pst._id;
                         thisPost["title"] = pst.title;
-                        thisPost["content"] = pst.content;
+                        thisPost["type"] = pst.type;
+                        thisPost["description"] = pst.description;
+                        if(pst.type == "recipe"){
+                            thisPost["ingredients"] = pst.ingredients;
+                            thisPost["directions"] = pst.directions;
+                        }
                         thisPost["userId"] = pst.userId;
                         thisPost["username"] = user.username;
                         thisPost["createdAt"] = pst.createdAt;
@@ -256,7 +284,12 @@ router.get("/scrollProfile", async (req, res) => {
                     }
                 thisPost["id"] = pst._id;
                 thisPost["title"] = pst.title;
-                thisPost["content"] = pst.content;
+                thisPost["type"] = pst.type;
+                thisPost["description"] = pst.description;
+                if(pst.type == "recipe"){
+                    thisPost["ingredients"] = pst.ingredients;
+                    thisPost["directions"] = pst.directions;
+                }
                 thisPost["userId"] = pst.userId;
                 thisPost["username"] = user.username;
                 thisPost["createdAt"] = pst.createdAt;
@@ -288,7 +321,12 @@ router.get("/scrollProfile", async (req, res) => {
                     }
                     thisPost["id"] = pst._id;
                     thisPost["title"] = pst.title;
-                    thisPost["content"] = pst.content;
+                    thisPost["type"] = pst.type;
+                    thisPost["description"] = pst.description;
+                    if(pst.type == "recipe"){
+                        thisPost["ingredients"] = pst.ingredients;
+                        thisPost["directions"] = pst.directions;
+                    }
                     thisPost["userId"] = pst.userId;
                     thisPost["username"] = user.username;
                     thisPost["createdAt"] = pst.createdAt;
@@ -314,7 +352,12 @@ router.get("/scrollProfile", async (req, res) => {
                     }
                     thisPost["id"] = pst._id;
                     thisPost["title"] = pst.title;
-                    thisPost["content"] = pst.content;
+                    thisPost["type"] = pst.type;
+                    thisPost["description"] = pst.description;
+                    if(pst.type == "recipe"){
+                        thisPost["ingredients"] = pst.ingredients;
+                        thisPost["directions"] = pst.directions;
+                    }
                     thisPost["userId"] = pst.userId;
                     thisPost["username"] = user.username;
                     thisPost["createdAt"] = pst.createdAt;
