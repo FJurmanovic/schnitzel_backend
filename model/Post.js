@@ -13,9 +13,13 @@ const PostSchema = mongoose.Schema({
     type: String,
     required: true
   },
+  categories: [],
   userId: {
     type: String,
     required: true
+  },
+  points: {
+    type: Number
   },
   ingredients: [{
     name: {

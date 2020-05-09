@@ -31,16 +31,20 @@ router.post(
             title,
             type,
             description,
+            categories,
             userId,
             ingredients,
             directions
         } = req.body;
         try {
+            let points = 0;
             if(type === "post"){
                 post = new Post({
                     title,
-                    type: "post",
+                    type,
                     description,
+                    categories,
+                    points,
                     userId
                 });
             }else if(type === "recipe"){
@@ -48,6 +52,8 @@ router.post(
                     title,
                     type,
                     description,
+                    categories,
+                    points,
                     userId,
                     ingredients,
                     directions
@@ -153,6 +159,8 @@ router.get("/scroll", user, async (req, res) => {
                     thisPost["title"] = pst.title;
                     thisPost["type"] = pst.type;
                     thisPost["description"] = pst.description;
+                    thisPost["points"] = pst.points;
+                    thisPost["categories"] = pst.categories;
                     thisPost["userId"] = pst.userId;
                     if(pst.type == "recipe"){
                         thisPost["ingredients"] = pst.ingredients;
@@ -194,6 +202,8 @@ router.get("/scroll", user, async (req, res) => {
                         thisPost["title"] = pst.title;
                         thisPost["type"] = pst.type;
                         thisPost["description"] = pst.description;
+                        thisPost["points"] = pst.points;
+                        thisPost["categories"] = pst.categories;
                         if(pst.type == "recipe"){
                             thisPost["ingredients"] = pst.ingredients;
                             thisPost["directions"] = pst.directions;
@@ -230,6 +240,8 @@ router.get("/scroll", user, async (req, res) => {
                         thisPost["title"] = pst.title;
                         thisPost["type"] = pst.type;
                         thisPost["description"] = pst.description;
+                        thisPost["points"] = pst.points;
+                        thisPost["categories"] = pst.categories;
                         if(pst.type == "recipe"){
                             thisPost["ingredients"] = pst.ingredients;
                             thisPost["directions"] = pst.directions;
@@ -286,6 +298,8 @@ router.get("/scrollProfile", async (req, res) => {
                 thisPost["title"] = pst.title;
                 thisPost["type"] = pst.type;
                 thisPost["description"] = pst.description;
+                thisPost["points"] = pst.points;
+                thisPost["categories"] = pst.categories;
                 if(pst.type == "recipe"){
                     thisPost["ingredients"] = pst.ingredients;
                     thisPost["directions"] = pst.directions;
@@ -323,6 +337,8 @@ router.get("/scrollProfile", async (req, res) => {
                     thisPost["title"] = pst.title;
                     thisPost["type"] = pst.type;
                     thisPost["description"] = pst.description;
+                    thisPost["points"] = pst.points;
+                    thisPost["categories"] = pst.categories;
                     if(pst.type == "recipe"){
                         thisPost["ingredients"] = pst.ingredients;
                         thisPost["directions"] = pst.directions;
@@ -354,6 +370,8 @@ router.get("/scrollProfile", async (req, res) => {
                     thisPost["title"] = pst.title;
                     thisPost["type"] = pst.type;
                     thisPost["description"] = pst.description;
+                    thisPost["points"] = pst.points;
+                    thisPost["categories"] = pst.categories;
                     if(pst.type == "recipe"){
                         thisPost["ingredients"] = pst.ingredients;
                         thisPost["directions"] = pst.directions;
