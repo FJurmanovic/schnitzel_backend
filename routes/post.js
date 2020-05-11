@@ -37,7 +37,7 @@ router.post(
             directions
         } = req.body;
         try {
-            let points = 0;
+            let points = [];
             if(type === "post"){
                 post = new Post({
                     title,
@@ -97,8 +97,25 @@ router.get("/data", auth, async (req, res) => {
     } catch (e) {
       res.send({ message: "Error in fetching post" });
     }
-  });
+});
 
+router.get("/addPoint", user, async (req, res) => {
+    try {
+        let post = await Post.findByIdAndUpdate(req.query.id, { $push: { points: {"userId": req.user.id}}})
+        res.send("Added point")
+    } catch (e) {
+        res.send({ message: "Error in fetching post" });
+    }
+})
+
+router.get("/removePoint", user, async (req, res) => {
+    try {
+        let post = await Post.findByIdAndUpdate(req.query.id, { $pull: { points: {"userId": req.user.id}}})
+        res.send("Removed point")
+    } catch (e) {
+        res.send({ message: "Error in fetching post" });
+    }
+})
 
 router.get("/getPost", user, async (req, res) => {
     try {
@@ -176,6 +193,8 @@ router.get("/scroll", user, async (req, res) => {
                     }
                 let isFollowing = await User.findById(req.user.id)
                 let check = isFollowing.following.map(follower => follower.userId == user.id)[0]
+
+                let isPointed = pst.points.map(x => x.userId == user.id)[0] || false
                 
                 if (check || req.user.id == pst.userId || user.username === "DeletedUser"){
                     thisPost["id"] = pst._id;
@@ -183,6 +202,7 @@ router.get("/scroll", user, async (req, res) => {
                     thisPost["type"] = pst.type;
                     thisPost["description"] = pst.description;
                     thisPost["points"] = pst.points;
+                    thisPost["isPointed"] = isPointed;
                     thisPost["categories"] = pst.categories;
                     thisPost["userId"] = pst.userId;
                     if(pst.type == "recipe"){

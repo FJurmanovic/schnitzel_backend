@@ -18,9 +18,16 @@ const PostSchema = mongoose.Schema({
     type: String,
     required: true
   },
-  points: {
-    type: Number
-  },
+  points: [{
+    _id: false,
+    userId: {
+      type: String
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
   ingredients: [{
     name: {
       type: String,
@@ -45,9 +52,16 @@ const PostSchema = mongoose.Schema({
       type: String,
       required: true
     },
-    points: {
-      type: Number
-    },
+    points: [{
+      _id: false,
+      userId: {
+        type: String
+      },
+      createdAt: {
+        type: Date,
+        default: Date.now
+      }
+    }],
     createdAt: {
       type: Date,
       default: Date.now()
@@ -61,9 +75,16 @@ const PostSchema = mongoose.Schema({
         type: String,
         required: true
       },
-      points: {
-        type: Number
-      },
+      points: [{
+        _id: false,
+        userId: {
+          type: String
+        },
+        createdAt: {
+          type: Date,
+          default: Date.now
+        }
+      }],
       createdAt: {
         type: Date,
         default: Date.now()
