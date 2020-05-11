@@ -100,35 +100,58 @@ router.get("/data", auth, async (req, res) => {
   });
 
 
-router.get("/home", auth, async (req, res) => {
+router.get("/getPost", user, async (req, res) => {
     try {
-
-        await Post.find({}).sort({createdAt: -1}).exec(function(err, posts){
-            var postMap = {};
-
-            posts.forEach(async function(post, key) {
-                var thisPost = {};
-                let user = await User.findById(pst.userId);
+            const post = await Post.findById(req.query.id)
+            let user = await User.findById(post.userId);
                     if(user == null){
-                        user= {"username": "DeletedUser"}
+                        user = {"username": "DeletedUser"}
                     }
-                thisPost["id"] = post._id;
-                thisPost["title"] = post.title;
-                thisPost["description"] = post.description;
-                thisPost["userId"] = post.userId;
-                thisPost["username"] = user.username;
-                thisPost["createdAt"] = post.createdAt;
-                postMap[key] = thisPost;
-                if (key == posts.length-1){
-                    res.json(postMap);
+            let isFollowing = await User.findById(req.user.id)
+            let check = isFollowing.following.map(follower => follower.userId == user.id)[0]
+            if (check || req.user.id == post.userId || user.username === "DeletedUser" || !user.isPrivate){
+                if(post.type == "recipe"){
+                    res.json(
+                        {
+                            post: {
+                                id: post._id,
+                                title: post.title,
+                                type: post.type,
+                                description: post.description,
+                                points: post.points,
+                                categories: post.categories,
+                                ingredients: post.ingredients,
+                                directions: post.directions,
+                                comments: post.comments,
+                                userId: post.userId,
+                                username: user.username,
+                                createdAt: post.createdAt
+                            }
+                        }
+                    )
+                }else{
+                    res.json(
+                        {
+                            post: {
+                                id: post._id,
+                                title: post.title,
+                                type: post.type,
+                                description: post.description,
+                                points: post.points,
+                                categories: post.categories,
+                                comments: post.comments,
+                                userId: post.userId,
+                                username: user.username,
+                                createdAt: post.createdAt
+                            }
+                        }
+                    )
                 }
-            });
-
-            
-
-            //res.send(postMap);
                 
-        });
+                
+            }else{
+                res.json({"message": "Not following " + user.username + "or user is private"})
+            }
     } catch (e) {
         res.send({ message: "Error in fetching posts" })
     }
@@ -145,7 +168,7 @@ router.get("/scroll", user, async (req, res) => {
 
             let i = 0;
             for(const pst of post){
-                console.log(pst)
+                //console.log(pst)
                 var thisPost = {};
                 let user = await User.findById(pst.userId);
                     if(user == null){
@@ -320,7 +343,7 @@ router.get("/scrollProfile", async (req, res) => {
             .sort({createdAt: -1});
 
             if (postNew.length < fit){
-                console.log("Dada")
+                //console.log("Dada")
                 const post = await Post.find( { $and:[{$or:[{ createdAt: { $lt: lastDate }}, { $and:[{createdAt: { $eq: lastDate}}, {_id: {$ne: lastId}}]}]}, {userId: userId}] } )
                 .sort({createdAt: -1}).limit(postNew.length);
                 
