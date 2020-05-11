@@ -90,6 +90,40 @@ router.post(
     }
 );
 
+router.post(
+    "/newComment",
+    [
+        check("comment", "Please enter a valid comment").not()
+        .isEmpty(),
+        check("userId", "Invalid userId").not()
+        .isEmpty(),
+    ],
+    async (req, res) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json(errors);
+        }
+
+        const {
+            postId,
+            comment,
+            userId
+        } = req.body;
+        try {
+            let points = [];
+
+            let post = await Post.findByIdAndUpdate(postId, { $push: { comments: {"userId": userId, "comment": comment, "points": points}}})
+
+            res.send("Added comment")
+
+            errRoute = errors;
+        } catch (err) {
+            console.log(err.message);
+            res.status(500).send("Error in Saving");
+        }
+    }
+);
+
 router.get("/data", auth, async (req, res) => {
     try {
       const post = await Post.findById(req.post.id);
@@ -101,7 +135,14 @@ router.get("/data", auth, async (req, res) => {
 
 router.get("/addPoint", user, async (req, res) => {
     try {
-        let post = await Post.findByIdAndUpdate(req.query.id, { $push: { points: {"userId": req.user.id}}})
+        if(req.query.type == "post"){
+            await Post.findByIdAndUpdate(req.query.id, { $push: { points: {"userId": req.user.id}}})
+        }else if(req.query.type == "comment"){
+            await Post.updateOne({_id: req.query.id, 'comments._id': req.query.commentId}, { $addToSet: { 'comments.$.points': {"userId": req.user.id} } });
+        }else if(req.query.type == "reply"){
+
+        }
+        
         res.send("Added point")
     } catch (e) {
         res.send({ message: "Error in fetching post" });
@@ -110,7 +151,13 @@ router.get("/addPoint", user, async (req, res) => {
 
 router.get("/removePoint", user, async (req, res) => {
     try {
-        let post = await Post.findByIdAndUpdate(req.query.id, { $pull: { points: {"userId": req.user.id}}})
+        if(req.query.type == "post"){
+            await Post.findByIdAndUpdate(req.query.id, { $pull: { points: {"userId": req.user.id}}})
+        }else if(req.query.type == "comment"){
+            await Post.updateOne({_id: req.query.id, 'comments._id': req.query.commentId}, { $pull: { 'comments.$.points': {"userId": req.user.id} }})
+        }else if(req.query.type == "reply"){
+
+        }
         res.send("Removed point")
     } catch (e) {
         res.send({ message: "Error in fetching post" });
@@ -126,49 +173,49 @@ router.get("/getPost", user, async (req, res) => {
                     }
             let isFollowing = await User.findById(req.user.id)
             let check = isFollowing.following.map(follower => follower.userId == user.id)[0]
-            if (check || req.user.id == post.userId || user.username === "DeletedUser" || !user.isPrivate){
-                if(post.type == "recipe"){
-                    res.json(
-                        {
-                            post: {
-                                id: post._id,
-                                title: post.title,
-                                type: post.type,
-                                description: post.description,
-                                points: post.points,
-                                categories: post.categories,
-                                ingredients: post.ingredients,
-                                directions: post.directions,
-                                comments: post.comments,
-                                userId: post.userId,
-                                username: user.username,
-                                createdAt: post.createdAt
-                            }
-                        }
-                    )
-                }else{
-                    res.json(
-                        {
-                            post: {
-                                id: post._id,
-                                title: post.title,
-                                type: post.type,
-                                description: post.description,
-                                points: post.points,
-                                categories: post.categories,
-                                comments: post.comments,
-                                userId: post.userId,
-                                username: user.username,
-                                createdAt: post.createdAt
-                            }
-                        }
-                    )
-                }
-                
-                
-            }else{
-                res.json({"message": "Not following " + user.username + "or user is private"})
+            let isPointed = post.points.map(x => x.userId == req.user.id)[0] || false
+            
+            let postMap = {};
+        
+            postMap["id"] = post._id;
+            postMap["title"] = post.title;
+            postMap["type"] = post.type;
+            postMap["description"] = post.description;
+            postMap["isPointed"] = isPointed;
+            postMap["points"] = post.points;
+            postMap["categories"] = post.categories;
+            if(post.type == "recipe"){
+                postMap["ingredients"] = post.ingredients;
+                postMap["directions"] = post.directions;
             }
+            postMap["userId"] = post.userId;
+            postMap["username"] = user.username;
+            postMap["createdAt"] = post.createdAt;
+            postMap["comments"] = [];
+
+            let comments = post.comments;
+            let newComments = [];
+            for(let comment of comments){
+                let newComment = {};
+                let userInComment = await User.findById(comment.userId);
+                    if(userInComment == null){
+                        userInComment = {"username": "DeletedUser"}
+                    }
+                let isCommentPointed = comment.points.map(x => x.userId == req.user.id)[0] || false
+                    
+                newComment["id"] = comment.id,
+                newComment["comment"] = comment.comment,
+                newComment["createdAt"] = comment.createdAt,
+                newComment["isPointed"] = isCommentPointed,
+                newComment["points"] = comment.points,
+                newComment["reply"] = comment.reply,
+                newComment["userId"] = comment.userId,
+                newComment["username"] = userInComment.username;
+                postMap["comments"].push(newComment);
+            }
+
+            res.json({post: postMap});
+            
     } catch (e) {
         res.send({ message: "Error in fetching posts" })
     }
