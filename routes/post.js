@@ -112,9 +112,21 @@ router.post(
         try {
             let points = [];
 
-            let post = await Post.findByIdAndUpdate(postId, { $push: { comments: {"userId": userId, "comment": comment, "points": points}}})
+            if('commentId' in req.body){
+                const { commentId } = req.body;
 
-            res.send("Added comment")
+                await Post.updateOne({_id: postId, 'comments._id': commentId}, { $addToSet: { 'comments.$.reply': {"userId": userId, "comment": comment, "points": points} } });
+                
+                res.send("Added reply")
+
+            }else{
+                await Post.findByIdAndUpdate(postId, { $push: { comments: {"userId": userId, "comment": comment, "points": points}}})
+                
+                res.send("Added comment")
+            }
+                
+            res.send("Comment not added")
+
 
             errRoute = errors;
         } catch (err) {
@@ -140,7 +152,8 @@ router.get("/addPoint", user, async (req, res) => {
         }else if(req.query.type == "comment"){
             await Post.updateOne({_id: req.query.id, 'comments._id': req.query.commentId}, { $addToSet: { 'comments.$.points': {"userId": req.user.id} } });
         }else if(req.query.type == "reply"){
-
+            await Post.findByIdAndUpdate({_id: req.query.id}, { $addToSet: { 'comments.$[comment].reply.$[repl].points': {"userId": req.user.id} } }, { arrayFilters: [{ 'comment._id': req.query.commentId }, { 'repl._id': req.query.replyId }] })
+            //await Post.updateOne({_id: req.query.id, 'comments._id': req.query.commentId, 'comments.$.reply._id': req.query.replyId }, { $addToSet: { 'comments.$.reply.0.points': {"userId": req.user.id } } })
         }
         
         res.send("Added point")
@@ -156,7 +169,7 @@ router.get("/removePoint", user, async (req, res) => {
         }else if(req.query.type == "comment"){
             await Post.updateOne({_id: req.query.id, 'comments._id': req.query.commentId}, { $pull: { 'comments.$.points': {"userId": req.user.id} }})
         }else if(req.query.type == "reply"){
-
+            await Post.findByIdAndUpdate({_id: req.query.id}, { $pull: { 'comments.$[comment].reply.$[repl].points': {"userId": req.user.id} } }, { arrayFilters: [{ 'comment._id': req.query.commentId }, { 'repl._id': req.query.replyId }] })
         }
         res.send("Removed point")
     } catch (e) {
@@ -208,7 +221,23 @@ router.get("/getPost", user, async (req, res) => {
                 newComment["createdAt"] = comment.createdAt,
                 newComment["isPointed"] = isCommentPointed,
                 newComment["points"] = comment.points,
-                newComment["reply"] = comment.reply,
+                newComment["reply"] = [];
+                for(let reply of comment.reply){
+                    let newReply = {};
+                    let userInReply = await User.findById(reply.userId);
+                    if(userInReply == null){
+                        userInReply = {"username": "DeletedUser"}
+                    }
+                    let isReplyPointed = reply.points.map(x => x.userId == req.user.id)[0] || false
+                    newReply["id"] = reply.id,
+                    newReply["comment"] = reply.comment,
+                    newReply["createdAt"] = reply.createdAt,
+                    newReply["isPointed"] = isReplyPointed,
+                    newReply["points"] = reply.points;
+                    newReply["userId"] = reply.userId,
+                    newReply["username"] = userInReply.username;
+                    newComment["reply"].push(newReply);
+                }
                 newComment["userId"] = comment.userId,
                 newComment["username"] = userInComment.username;
                 postMap["comments"].push(newComment);
