@@ -9,6 +9,10 @@ const PostSchema = mongoose.Schema({
     type: String,
     required: true
   },
+  isPrivate: {
+    type: Boolean,
+    required: true
+  },
   description: {
     type: String,
     required: true

@@ -30,6 +30,7 @@ router.post(
         const {
             title,
             type,
+            isPrivate,
             description,
             categories,
             userId,
@@ -42,6 +43,7 @@ router.post(
                 post = new Post({
                     title,
                     type,
+                    isPrivate,
                     description,
                     categories,
                     points,
@@ -51,6 +53,7 @@ router.post(
                 post = new Post({
                     title,
                     type,
+                    isPrivate,
                     description,
                     categories,
                     points,
@@ -180,6 +183,12 @@ router.get("/removePoint", user, async (req, res) => {
 router.get("/getPost", user, async (req, res) => {
     try {
             const post = await Post.findById(req.query.id)
+            
+
+            if(post.isPrivate && post.userId != req.user.id){
+                res.send("This post is private")
+            }
+
             let user = await User.findById(post.userId);
                     if(user == null){
                         user = {"username": "DeletedUser"}
@@ -193,6 +202,7 @@ router.get("/getPost", user, async (req, res) => {
             postMap["id"] = post._id;
             postMap["title"] = post.title;
             postMap["type"] = post.type;
+            postMap["isPrivate"] = post.isPrivate || false;
             postMap["description"] = post.description;
             postMap["isPointed"] = isPointed;
             postMap["points"] = post.points;
@@ -255,40 +265,50 @@ router.get("/scroll", user, async (req, res) => {
 
     try {
         if((lastDate == '' || !lastDate) || (lastId == '' || !lastId)){
-            const post = await Post.find({}).sort({createdAt: -1}).limit(parseInt(fit));
+            const user = await User.findById(req.user.id);
+            let following = user.following || [];
+            var ids = following.map(function(x) { return x.userId } );
+            ids.push(req.user.id);
+            const post = await Post.find({userId: { "$in": ids } }).sort({createdAt: -1}).limit(parseInt(fit));
 
+            //console.log(post)
+            
             var postMap = [];
 
             let i = 0;
             for(const pst of post){
-                //console.log(pst)
+                
+                if(pst.isPrivate && pst.userId != req.user.id){
+                    i++
+                    continue;
+                }
+
                 var thisPost = {};
                 let user = await User.findById(pst.userId);
                     if(user == null){
                         user = {"username": "DeletedUser"}
                     }
-                let isFollowing = await User.findById(req.user.id)
-                let check = isFollowing.following.map(follower => follower.userId == user.id)[0]
 
                 let isPointed = pst.points.map(x => x.userId == user.id)[0] || false
-                
-                if (check || req.user.id == pst.userId || user.username === "DeletedUser"){
-                    thisPost["id"] = pst._id;
-                    thisPost["title"] = pst.title;
-                    thisPost["type"] = pst.type;
-                    thisPost["description"] = pst.description;
-                    thisPost["points"] = pst.points;
-                    thisPost["isPointed"] = isPointed;
-                    thisPost["categories"] = pst.categories;
-                    thisPost["userId"] = pst.userId;
-                    if(pst.type == "recipe"){
-                        thisPost["ingredients"] = pst.ingredients;
-                        thisPost["directions"] = pst.directions;
-                    }
-                    thisPost["username"] = user.username;
-                    thisPost["createdAt"] = pst.createdAt;
-                    postMap.push(thisPost);
+
+                thisPost["id"] = pst._id;
+                thisPost["title"] = pst.title;
+                thisPost["type"] = pst.type;
+                thisPost["isPrivate"] = pst.isPrivate || false;
+                thisPost["description"] = pst.description;
+                thisPost["points"] = pst.points;
+                thisPost["isPointed"] = isPointed;
+                thisPost["categories"] = pst.categories;
+                thisPost["userId"] = pst.userId;
+                if(pst.type == "recipe"){
+                    thisPost["ingredients"] = pst.ingredients;
+                    thisPost["directions"] = pst.directions;
                 }
+                thisPost["username"] = user.username;
+                thisPost["createdAt"] = pst.createdAt;
+                
+                postMap.push(thisPost);
+
                 if (i == post.length-1){
                     res.json({post: postMap, last: false});
                 }
@@ -301,37 +321,45 @@ router.get("/scroll", user, async (req, res) => {
             .sort({createdAt: -1});
 
             if (postNew.length < fit){
-                const post = await Post.find( { $or:[{ createdAt: { $lt: lastDate }}, { $and:[{createdAt: { $eq: lastDate}}, {_id: {$ne: lastId}}]}] } )
+                const user = await User.findById(req.user.id);
+                let following = user.following || [];
+                var ids = following.map(function(x) { return x.userId } );
+                ids.push(req.user.id);
+                const post = await Post.find( { $and: [{ userId: { "$in": ids } }, { $or:[{ createdAt: { $lt: lastDate }}, { $and:[{createdAt: { $eq: lastDate}}, {_id: {$ne: lastId}}]}] }] } )
                 .sort({createdAt: -1}).limit(postNew.length);
                 
                 
                 var postMap = [];
                 let i = 0;
                 for(const pst of post){
+                    if(pst.isPrivate && pst.userId != req.user.id){
+                        i++
+                        continue;
+                    }
                     var thisPost = {};
                     let user = await User.findById(pst.userId);
                     if(user == null){
                         user = {"username": "DeletedUser"}
                     }
-                    let isFollowing = await User.findById(req.user.id)
-                    let check = isFollowing.following.map(follower => follower.userId == user.id)[0]
+                    let isPointed = pst.points.map(x => x.userId == user.id)[0] || false
                     
-                    if (check || req.user.id == pst.userId || user.username === "DeletedUser"){
-                        thisPost["id"] = pst._id;
-                        thisPost["title"] = pst.title;
-                        thisPost["type"] = pst.type;
-                        thisPost["description"] = pst.description;
-                        thisPost["points"] = pst.points;
-                        thisPost["categories"] = pst.categories;
-                        if(pst.type == "recipe"){
-                            thisPost["ingredients"] = pst.ingredients;
-                            thisPost["directions"] = pst.directions;
-                        }
-                        thisPost["userId"] = pst.userId;
-                        thisPost["username"] = user.username;
-                        thisPost["createdAt"] = pst.createdAt;
-                        postMap.push(thisPost);
+                    thisPost["id"] = pst._id;
+                    thisPost["title"] = pst.title;
+                    thisPost["type"] = pst.type;
+                    thisPost["isPrivate"] = pst.isPrivate || false;
+                    thisPost["description"] = pst.description;
+                    thisPost["points"] = pst.points;
+                    thisPost["isPointed"] = isPointed;
+                    thisPost["categories"] = pst.categories;
+                    if(pst.type == "recipe"){
+                        thisPost["ingredients"] = pst.ingredients;
+                        thisPost["directions"] = pst.directions;
                     }
+                    thisPost["userId"] = pst.userId;
+                    thisPost["username"] = user.username;
+                    thisPost["createdAt"] = pst.createdAt;
+                    postMap.push(thisPost);
+
                     if (i == post.length-1){
                         res.json({post: postMap, last: false});
                     }
@@ -339,37 +367,45 @@ router.get("/scroll", user, async (req, res) => {
                 };
                 
             }else{
-                const post = await Post.find( { $or:[{ createdAt: { $lt: lastDate }}, { $and:[{createdAt: { $eq: lastDate}}, {_id: {$ne: lastId}}]}] } )
+                const user = await User.findById(req.user.id);
+                let following = user.following || [];
+                var ids = following.map(function(x) { return x.userId } );
+                ids.push(req.user.id);
+                const post = await Post.find( { $and: [{ userId: { "$in": ids } }, { $or:[{ createdAt: { $lt: lastDate }}, { $and:[{createdAt: { $eq: lastDate}}, {_id: {$ne: lastId}}]}] }] } )
                 .sort({createdAt: -1}).limit(parseInt(fit));
                 
                 
                 var postMap = [];
                 let i = 0;
                 for(const pst of post){
+                    if(pst.isPrivate && pst.userId != req.user.id){
+                        i++
+                        continue;
+                    }
                     var thisPost = {};
                     let user = await User.findById(pst.userId);
                     if(user == null){
                         user = {"username": "DeletedUser"}
                     }
-                    let isFollowing = await User.findById(req.user.id)
-                    let check = isFollowing.following.map(follower => follower.userId == user.id)[0]
-                    
-                    if (check || req.user.id == pst.userId || user.username === "DeletedUser"){
-                        thisPost["id"] = pst._id;
-                        thisPost["title"] = pst.title;
-                        thisPost["type"] = pst.type;
-                        thisPost["description"] = pst.description;
-                        thisPost["points"] = pst.points;
-                        thisPost["categories"] = pst.categories;
-                        if(pst.type == "recipe"){
-                            thisPost["ingredients"] = pst.ingredients;
-                            thisPost["directions"] = pst.directions;
-                        }
-                        thisPost["userId"] = pst.userId;
-                        thisPost["username"] = user.username;
-                        thisPost["createdAt"] = pst.createdAt;
-                        postMap.push(thisPost);
+                    let isPointed = pst.points.map(x => x.userId == user.id)[0] || false
+
+                    thisPost["id"] = pst._id;
+                    thisPost["title"] = pst.title;
+                    thisPost["type"] = pst.type;
+                    thisPost["isPrivate"] = pst.isPrivate || false;
+                    thisPost["description"] = pst.description;
+                    thisPost["points"] = pst.points;
+                    thisPost["isPointed"] = isPointed;
+                    thisPost["categories"] = pst.categories;
+                    if(pst.type == "recipe"){
+                        thisPost["ingredients"] = pst.ingredients;
+                        thisPost["directions"] = pst.directions;
                     }
+                    thisPost["userId"] = pst.userId;
+                    thisPost["username"] = user.username;
+                    thisPost["createdAt"] = pst.createdAt;
+                    postMap.push(thisPost);
+
                     if (i == post.length-1){
                         res.json({post: postMap, last: false});
                     }
@@ -377,6 +413,7 @@ router.get("/scroll", user, async (req, res) => {
                 };
             }
         }
+        res.send({ end: true })
     } catch (e) {
         res.send({ message: "Error in fetchin posts" })
     }
@@ -398,7 +435,7 @@ router.get("/removePost", user, async (req, res) => {
     }
   });
 
-router.get("/scrollProfile", async (req, res) => {
+router.get("/scrollProfile", user,  async (req, res) => {
     const { userId, fit, lastDate, lastId } = req.query;
 
     try {
@@ -408,6 +445,11 @@ router.get("/scrollProfile", async (req, res) => {
             var postMap = [];
             let i = 0;
             for(const pst of post){
+                let isPrivate = pst.isPrivate || false;
+                if(isPrivate && pst.userId != req.user.id){
+                    i++;
+                    continue;
+                }
                 var thisPost = {};
                 let user = await User.findById(pst.userId);
                     if(user == null){
@@ -447,6 +489,10 @@ router.get("/scrollProfile", async (req, res) => {
                 var postMap = [];
                 let i = 0;
                 for(const pst of post){
+                    if(pst.isPrivate && pst.userId != req.user.id){
+                        i++
+                        continue;
+                    }
                     var thisPost = {};
                     let user = await User.findById(pst.userId);
                     if(user == null){
@@ -455,6 +501,7 @@ router.get("/scrollProfile", async (req, res) => {
                     thisPost["id"] = pst._id;
                     thisPost["title"] = pst.title;
                     thisPost["type"] = pst.type;
+                    thisPost["isPrivate"] = pst.isPrivate || false;
                     thisPost["description"] = pst.description;
                     thisPost["points"] = pst.points;
                     thisPost["categories"] = pst.categories;
@@ -480,6 +527,10 @@ router.get("/scrollProfile", async (req, res) => {
                 var postMap = [];
                 let i = 0;
                 for(const pst of post){
+                    if(pst.isPrivate && pst.userId != req.user.id){
+                        i++
+                        continue;
+                    }
                     var thisPost = {};
                     let user = await User.findById(pst.userId);
                     if(user == null){
@@ -488,6 +539,7 @@ router.get("/scrollProfile", async (req, res) => {
                     thisPost["id"] = pst._id;
                     thisPost["title"] = pst.title;
                     thisPost["type"] = pst.type;
+                    thisPost["isPrivate"] = pst.isPrivate || false;
                     thisPost["description"] = pst.description;
                     thisPost["points"] = pst.points;
                     thisPost["categories"] = pst.categories;
@@ -506,6 +558,7 @@ router.get("/scrollProfile", async (req, res) => {
                 };
             }
         }
+        res.send({ end: true })
     } catch (e) {
         res.send({ message: "Error in fetchin posts" })
     }
