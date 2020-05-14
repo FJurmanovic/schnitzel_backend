@@ -20,6 +20,12 @@ const UserSchema = mongoose.Schema({
     type: Boolean,
     required: true
   },
+  hasPhoto: {
+    type: Boolean
+  },
+  photoExt: {
+    type: String
+  },
   following: [{
     userId: String
   }],

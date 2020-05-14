@@ -178,7 +178,7 @@ router.post(
       });
     }
 
-    const { email, username, password, isPrivate, id } = req.body;
+    const { email, username, password, isPrivate, id, hasPhoto, photoExt } = req.body;
     try {
       console.log(req.body)
       if(id != req.user.id){
@@ -256,6 +256,18 @@ router.post(
           }
         })
       }
+      if ('hasPhoto' in req.body){
+        User.findByIdAndUpdate(id, {hasPhoto: hasPhoto, photoExt: photoExt, updatedAt: Date()}, function(err, ress){
+          if(err) {
+            return res.status(400).json({
+              type: "photo",
+              message: err
+            });
+          }else{
+            //console.log(ress)
+          }
+        })
+      }
 
       const payload = {
         user: {
@@ -295,6 +307,8 @@ router.get("/data", auth, async (req, res) => {
       userData["email"] = user.email;
       userData["createdAt"] = user.createdAt;
       userData["isPrivate"] = user.isPrivate;
+      userData["hasPhoto"] = user.hasPhoto || false;
+      userData["photoExt"] = user.photoExt || '';
 
       let { following, followers } = user;
 
