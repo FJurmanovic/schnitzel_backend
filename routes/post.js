@@ -260,6 +260,79 @@ router.get("/getPost", user, async (req, res) => {
     }
 });
 
+router.get("/getPostForEdit", user, async (req, res) => {
+    try {
+            const post = await Post.findById(req.query.id)
+            
+            if(post.userId != req.user.id){
+                res.send("This is not your post")
+            }
+
+            let user = await User.findById(post.userId);
+                    if(user == null){
+                        user = {"username": "DeletedUser"}
+                    }
+            let isFollowing = await User.findById(req.user.id)
+            let check = isFollowing.following.map(follower => follower.userId == user.id)[0]
+            let isPointed = post.points.map(x => x.userId == req.user.id)[0] || false
+            
+            let postMap = {};
+        
+            postMap["id"] = post._id;
+            postMap["title"] = post.title;
+            postMap["type"] = post.type;
+            postMap["isPrivate"] = post.isPrivate || false;
+            postMap["description"] = post.description;
+            postMap["categories"] = post.categories;
+            if(post.type == "recipe"){
+                postMap["ingredients"] = post.ingredients;
+                postMap["directions"] = post.directions;
+            }
+            postMap["userId"] = post.userId;
+            postMap["username"] = user.username;
+            postMap["createdAt"] = post.createdAt;
+
+            res.json({post: postMap});
+            
+    } catch (e) {
+        res.send({ message: "Error in fetching posts" })
+    }
+});
+
+router.post(
+    "/edit", user,
+    async (req, res) => {
+      const errors = validationResult(req);
+  
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          errors: errors.array()
+        });
+      }
+  
+      const { id, title, type, isPrivate, description, categories, userId, } = req.body;
+      const ingredients = req.body.ingredients || [];
+      const directions = req.body.directions || '';
+
+      try {
+        const post = await Post.findById(id);
+        if(post.userId != req.user.id){
+            res.send("This post doesn't belong to you");
+        }
+
+        await Post.findByIdAndUpdate(id, {title, type, isPrivate, description, categories, ingredients, directions, updatedAt: Date()})
+  
+        res.send("Succesfully edited");
+  
+      } catch (e) {
+        console.error(e);
+        res.status(500).json({
+          message: "Server Error"
+        });
+      }
+    }
+  );
+
 router.get("/scroll", user, async (req, res) => {
     const { current, fit, lastDate, lastId } = req.query;
 

@@ -168,7 +168,7 @@ router.post(
 );
 
 router.post(
-  "/edit",
+  "/edit", auth,
   async (req, res) => {
     const errors = validationResult(req);
 
@@ -180,6 +180,10 @@ router.post(
 
     const { email, username, password, isPrivate, id } = req.body;
     try {
+      console.log(req.body)
+      if(id != req.user.id){
+        res.send({message: "Invalid account"});
+      }
       
       if('email' in req.body){
         let user = await User.findOne({

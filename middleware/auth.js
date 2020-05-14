@@ -2,6 +2,7 @@ const jwt_decode = require("jwt-decode");
 
 module.exports = function(req, res, next) {
   let token = '';
+  console.log(req.header("header"))
   if(!req.header("token")){
     token = req.body["token"];
   }else{ 
