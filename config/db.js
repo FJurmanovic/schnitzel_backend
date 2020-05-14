@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
 
-const MONGOURI = "mongodb://localhost:27017/schnitzel?retryWrites=true&w=majority";
+require('dotenv').config()
+
+const MONGOURI = process.env.MONGOURI;
 
 const InitiateMongoServer = async () => {
   try {

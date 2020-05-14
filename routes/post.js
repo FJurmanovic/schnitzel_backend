@@ -1,6 +1,7 @@
 const express = require("express");
 const { check, validationResult} = require("express-validator");
 const router = express.Router();
+const path = require("path");
 
 const jwt = require("jsonwebtoken");
 
@@ -9,6 +10,19 @@ const User = require("../model/User");
 
 const auth = require("../middleware/post");
 const user = require("../middleware/auth");
+const upload = require("../middleware/upload");
+
+
+require('dotenv').config()
+
+const cloudinary = require('cloudinary').v2
+
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
 
 router.post(
     "/create",
@@ -31,6 +45,8 @@ router.post(
             title,
             type,
             isPrivate,
+            hasPhoto,
+            photoExt,
             description,
             categories,
             userId,
@@ -44,6 +60,8 @@ router.post(
                     title,
                     type,
                     isPrivate,
+                    hasPhoto,
+                    photoExt,
                     description,
                     categories,
                     points,
@@ -54,6 +72,8 @@ router.post(
                     title,
                     type,
                     isPrivate,
+                    hasPhoto,
+                    photoExt,
                     description,
                     categories,
                     points,
@@ -66,24 +86,7 @@ router.post(
 
             await post.save();
 
-            const payload = {
-                post: {
-                    id: post.id
-                }
-            };
-
-            jwt.sign(
-                payload,
-                "randomString", {
-                    expiresIn: 10000
-                },
-                (err, token) => {
-                    if (err) throw err;
-                    res.status(200).json({
-                        token
-                    });
-                }
-            );
+            res.send({id: post.id})
 
             errRoute = errors;
         } catch (err) {
@@ -203,6 +206,8 @@ router.get("/getPost", user, async (req, res) => {
             postMap["title"] = post.title;
             postMap["type"] = post.type;
             postMap["isPrivate"] = post.isPrivate || false;
+            postMap["hasPhoto"] = post.hasPhoto || false;
+            postMap["photoExt"] = post.photoExt || '';
             postMap["description"] = post.description;
             postMap["isPointed"] = isPointed;
             postMap["points"] = post.points;
@@ -282,6 +287,8 @@ router.get("/getPostForEdit", user, async (req, res) => {
             postMap["title"] = post.title;
             postMap["type"] = post.type;
             postMap["isPrivate"] = post.isPrivate || false;
+            postMap["hasPhoto"] = post.hasPhoto || false;
+            postMap["photoExt"] = post.photoExt || '';
             postMap["description"] = post.description;
             postMap["categories"] = post.categories;
             if(post.type == "recipe"){
@@ -368,6 +375,8 @@ router.get("/scroll", user, async (req, res) => {
                 thisPost["title"] = pst.title;
                 thisPost["type"] = pst.type;
                 thisPost["isPrivate"] = pst.isPrivate || false;
+                thisPost["hasPhoto"] = pst.hasPhoto || false;
+                thisPost["photoExt"] = pst.photoExt || '';
                 thisPost["description"] = pst.description;
                 thisPost["points"] = pst.points;
                 thisPost["isPointed"] = isPointed;
@@ -420,6 +429,8 @@ router.get("/scroll", user, async (req, res) => {
                     thisPost["title"] = pst.title;
                     thisPost["type"] = pst.type;
                     thisPost["isPrivate"] = pst.isPrivate || false;
+                    thisPost["hasPhoto"] = pst.hasPhoto || false;
+                    thisPost["photoExt"] = pst.photoExt || '';
                     thisPost["description"] = pst.description;
                     thisPost["points"] = pst.points;
                     thisPost["isPointed"] = isPointed;
@@ -466,6 +477,8 @@ router.get("/scroll", user, async (req, res) => {
                     thisPost["title"] = pst.title;
                     thisPost["type"] = pst.type;
                     thisPost["isPrivate"] = pst.isPrivate || false;
+                    thisPost["hasPhoto"] = pst.hasPhoto || false;
+                    thisPost["photoExt"] = pst.photoExt || '';
                     thisPost["description"] = pst.description;
                     thisPost["points"] = pst.points;
                     thisPost["isPointed"] = isPointed;
@@ -508,6 +521,36 @@ router.get("/removePost", user, async (req, res) => {
     }
   });
 
+
+router.post("/image-upload", upload.single('file'), (req, res) => {
+
+    const {type, id} = req.headers;
+
+    console.log(req.file)
+    
+
+    let ext = path.extname(req.file.originalname);
+    let pth1 = 'public';
+    let pth2 = `${type}/${id}`
+    let pth = `${pth1}/${pth2}`
+    console.log(id, type)
+
+
+    //console.log("Request file ---", req);//Here you get file.
+    // upload image here
+
+    console.log(pth + "/" + id + ext)
+    let post = pth + "/" + id + ext
+    let post2 = pth2 + "/" + id
+    console.log(process.env.CLOUDINARY_API_KEY)
+
+    cloudinary.uploader.upload(post, {resource_type: "image", public_id: post2,
+    overwrite: true});
+
+    res.send("Done")
+
+});
+
 router.get("/scrollProfile", user,  async (req, res) => {
     const { userId, fit, lastDate, lastId } = req.query;
 
@@ -532,6 +575,9 @@ router.get("/scrollProfile", user,  async (req, res) => {
                 thisPost["title"] = pst.title;
                 thisPost["type"] = pst.type;
                 thisPost["description"] = pst.description;
+                thisPost["isPrivate"] = pst.isPrivate || false;
+                thisPost["hasPhoto"] = pst.hasPhoto || false;
+                thisPost["photoExt"] = pst.photoExt || '';
                 thisPost["points"] = pst.points;
                 thisPost["categories"] = pst.categories;
                 if(pst.type == "recipe"){
@@ -575,6 +621,8 @@ router.get("/scrollProfile", user,  async (req, res) => {
                     thisPost["title"] = pst.title;
                     thisPost["type"] = pst.type;
                     thisPost["isPrivate"] = pst.isPrivate || false;
+                    thisPost["hasPhoto"] = pst.hasPhoto || false;
+                    thisPost["photoExt"] = pst.photoExt || '';
                     thisPost["description"] = pst.description;
                     thisPost["points"] = pst.points;
                     thisPost["categories"] = pst.categories;
@@ -613,6 +661,8 @@ router.get("/scrollProfile", user,  async (req, res) => {
                     thisPost["title"] = pst.title;
                     thisPost["type"] = pst.type;
                     thisPost["isPrivate"] = pst.isPrivate || false;
+                    thisPost["hasPhoto"] = pst.hasPhoto || false;
+                    thisPost["photoExt"] = pst.photoExt || '';
                     thisPost["description"] = pst.description;
                     thisPost["points"] = pst.points;
                     thisPost["categories"] = pst.categories;
@@ -636,5 +686,8 @@ router.get("/scrollProfile", user,  async (req, res) => {
         res.send({ message: "Error in fetchin posts" })
     }
 });
+
+  
+
 
 module.exports = router;
