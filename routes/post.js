@@ -571,6 +571,9 @@ router.get("/scrollProfile", user,  async (req, res) => {
                     if(user == null){
                         user= {"username": "DeletedUser"}
                     }
+                
+                let isPointed = pst.points.map(x => x.userId == user.id)[0] || false
+
                 thisPost["id"] = pst._id;
                 thisPost["title"] = pst.title;
                 thisPost["type"] = pst.type;
@@ -579,6 +582,7 @@ router.get("/scrollProfile", user,  async (req, res) => {
                 thisPost["hasPhoto"] = pst.hasPhoto || false;
                 thisPost["photoExt"] = pst.photoExt || '';
                 thisPost["points"] = pst.points;
+                thisPost["isPointed"] = isPointed;
                 thisPost["categories"] = pst.categories;
                 if(pst.type == "recipe"){
                     thisPost["ingredients"] = pst.ingredients;
@@ -617,6 +621,9 @@ router.get("/scrollProfile", user,  async (req, res) => {
                     if(user == null){
                         user= {"username": "DeletedUser"}
                     }
+                    
+                    let isPointed = pst.points.map(x => x.userId == user.id)[0] || false
+
                     thisPost["id"] = pst._id;
                     thisPost["title"] = pst.title;
                     thisPost["type"] = pst.type;
@@ -625,6 +632,7 @@ router.get("/scrollProfile", user,  async (req, res) => {
                     thisPost["photoExt"] = pst.photoExt || '';
                     thisPost["description"] = pst.description;
                     thisPost["points"] = pst.points;
+                    thisPost["isPointed"] = isPointed;
                     thisPost["categories"] = pst.categories;
                     if(pst.type == "recipe"){
                         thisPost["ingredients"] = pst.ingredients;
@@ -657,6 +665,9 @@ router.get("/scrollProfile", user,  async (req, res) => {
                     if(user == null){
                         user= {"username": "DeletedUser"}
                     }
+                    
+                    let isPointed = pst.points.map(x => x.userId == user.id)[0] || false
+
                     thisPost["id"] = pst._id;
                     thisPost["title"] = pst.title;
                     thisPost["type"] = pst.type;
@@ -665,6 +676,7 @@ router.get("/scrollProfile", user,  async (req, res) => {
                     thisPost["photoExt"] = pst.photoExt || '';
                     thisPost["description"] = pst.description;
                     thisPost["points"] = pst.points;
+                    thisPost["isPointed"] = isPointed;
                     thisPost["categories"] = pst.categories;
                     if(pst.type == "recipe"){
                         thisPost["ingredients"] = pst.ingredients;
