@@ -32,8 +32,8 @@ And run it
 Contribute
 ----------
 
-- Issue Tracker: https://github.com/Yurma/schnitzel-backend/issues
-- Source Code: https://github.com/Yurma/schnitzel-backend
+- Issue Tracker: https://github.com/Yurma/schnitzel_backend/issues
+- Source Code: https://github.com/Yurma/schnitzel_backend
 
 License
 -------
