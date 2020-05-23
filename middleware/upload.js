@@ -2,7 +2,7 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 
-
+//Middleware for adding images to disk before sending it to cloudinary
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {

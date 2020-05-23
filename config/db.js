@@ -4,6 +4,8 @@ require('dotenv').config()
 
 const MONGOURI = process.env.MONGOURI;
 
+//connects to mongodb server
+
 const InitiateMongoServer = async () => {
   try {
     await mongoose.connect(MONGOURI, {

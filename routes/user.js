@@ -9,9 +9,6 @@ const mongoose = require("mongoose");
 const User = require("../model/User");
 const auth = require("../middleware/auth");
 
-var Schema = mongoose.Schema,
-    ObjectId = Schema.ObjectId;
-
 let errRoute = {};
 
 
@@ -19,11 +16,11 @@ let errRoute = {};
 router.post(
     "/signup",
     [
-        check("username", "Please Enter a Valid Username")
+        check("username", "Please Enter a Valid Username") //Checks if "username" request is empty
         .not()
         .isEmpty(),
-        check("email", "Please enter a valid email").isEmail(),
-        check("password", "Please enter a valid password").isLength({
+        check("email", "Please enter a valid email").isEmail(), //Checks if "email" request is email
+        check("password", "Please enter a valid password").isLength({ //Checks if "password" request is smaller than 6 characters
             min: 6
         })
     ],
@@ -38,19 +35,19 @@ router.post(
             email,
             password,
             isPrivate
-        } = req.body;
+        } = req.body; //Variables from request's body
         try {
-            let user = await User.findOne({
-                email
+            let user = await User.findOne({ //If email exists in database, it will return true
+                email 
             });
             if (user) {
-                return res.status(400).json({
+                return res.status(400).json({ //It will send respond that email already exists
                     type: "email",
                     message: "Email is already registred"
                 });
             }
 
-            user = await User.findOne({
+            user = await User.findOne({ 
                 username
             });
             if (user) {
@@ -60,7 +57,7 @@ router.post(
                 });
             }
 
-            user = new User({
+            user = new User({ //If everything checks right, it will add new user to database
                 username,
                 email,
                 password,
@@ -71,8 +68,8 @@ router.post(
             user.createdAt = new Date();
             user.updatedAt = new Date();
 
-            const salt = await bcrypt.genSalt(10);
-            user.password = await bcrypt.hash(password, salt);
+            const salt = await bcrypt.genSalt(10); //Adds random characters(salt) 
+            user.password = await bcrypt.hash(password, salt); //Encrypts password + salt
 
             await user.save();
 
@@ -89,7 +86,7 @@ router.post(
                 },
                 (err, token) => {
                     if (err) throw err;
-                    res.status(200).json({
+                    res.status(200).json({ //Sends back token that rest of the backend uses for authentication
                         token
                     });
                 }
@@ -106,8 +103,8 @@ router.post(
 router.post(
     "/login",
     [
-      check("email", "Please enter a valid email").isEmail(),
-      check("password", "Please enter a valid password").isLength({
+      check("email", "Please enter a valid email").isEmail(), //Checks if email
+      check("password", "Please enter a valid password").isLength({ //Checks if >6
         min: 6
       })
     ],
@@ -120,18 +117,18 @@ router.post(
         });
       }
   
-      const { email, password } = req.body;
+      const { email, password } = req.body; //Variables from request body sent by frontend
       try {
-        let user = await User.findOne({
+        let user = await User.findOne({ //Checks if email exists
           email
         });
         if (!user)
-          return res.status(400).json({
+          return res.status(400).json({ //If not, sends message
             type: "email",
             message: "User does not exist"
           });
   
-        const isMatch = await bcrypt.compare(password, user.password);
+        const isMatch = await bcrypt.compare(password, user.password); //decrypts and compares if passwords match
         if (!isMatch)
           return res.status(400).json({
             type: "password",
@@ -153,7 +150,7 @@ router.post(
           (err, token) => {
             if (err) throw err;
             res.status(200).json({
-              token
+              token //Sends token used for login and backend auth
             });
           }
         );
@@ -168,7 +165,7 @@ router.post(
 );
 
 router.post(
-  "/edit", auth,
+  "/edit", auth, //Uses middleware that checks token and returns user id
   async (req, res) => {
     const errors = validationResult(req);
 
@@ -195,7 +192,7 @@ router.post(
                 message: "Email is already registred"
           });
         } else {
-          User.findByIdAndUpdate(id, {email: email, updatedAt: Date()}, function(err, ress){
+          User.findByIdAndUpdate(id, {email: email, updatedAt: Date()}, function(err, ress){ //Updates user email in database 
             if(err) {
               return res.status(400).json({
                 type: "email",
@@ -218,7 +215,7 @@ router.post(
                 message: "Username is already registred"
           });
         } else {
-          User.findByIdAndUpdate(id, {username: username, updatedAt: Date()}, function(err, ress){
+          User.findByIdAndUpdate(id, {username: username, updatedAt: Date()}, function(err, ress){ //Updates user username in database
             if(err) {
               return res.status(400).json({
                 type: "username",
@@ -233,7 +230,7 @@ router.post(
       if ('password' in req.body){
         const salt = await bcrypt.genSalt(10);
         const hashpassword = await bcrypt.hash(password, salt);
-        User.findByIdAndUpdate(id, {password: hashpassword, updatedAt: Date()}, function(err, ress){
+        User.findByIdAndUpdate(id, {password: hashpassword, updatedAt: Date()}, function(err, ress){ //Updates password of user in database
           if(err) {
             return res.status(400).json({
               type: "email",
@@ -245,7 +242,7 @@ router.post(
         })
       }
       if ('isPrivate' in req.body){
-        User.findByIdAndUpdate(id, {isPrivate: isPrivate, updatedAt: Date()}, function(err, ress){
+        User.findByIdAndUpdate(id, {isPrivate: isPrivate, updatedAt: Date()}, function(err, ress){ //Updates privacy of user
           if(err) {
             return res.status(400).json({
               type: "privacy",
@@ -257,7 +254,7 @@ router.post(
         })
       }
       if ('hasPhoto' in req.body){
-        User.findByIdAndUpdate(id, {hasPhoto: hasPhoto, photoExt: photoExt, updatedAt: Date()}, function(err, ress){
+        User.findByIdAndUpdate(id, {hasPhoto: hasPhoto, photoExt: photoExt, updatedAt: Date()}, function(err, ress){ //Updates if photo is uploaded
           if(err) {
             return res.status(400).json({
               type: "photo",
@@ -298,7 +295,7 @@ router.post(
   }
 );
 
-router.get("/data", auth, async (req, res) => {
+router.get("/data", auth, async (req, res) => { //Sending the user data to frontend
     try {
       const user = await User.findById(req.user.id);
       let userData = {};
@@ -314,9 +311,9 @@ router.get("/data", auth, async (req, res) => {
 
       //console.log(following)
       let newFollowing = []
-      if(following.length > 0){
+      if(following.length > 0){ //Enters if user has any following users
         following.forEach(async function(resp, key){
-          const userr = await User.findById(resp.userId);
+          const userr = await User.findById(resp.userId); //Adding current username's from followerId's 
           if(!(userr === null)){ 
             newFollowing[key] = {
               "userId": resp.userId,
@@ -347,7 +344,7 @@ router.get("/data", auth, async (req, res) => {
           }
         })
 
-      }else if(followers.length > 0){
+      }else if(followers.length > 0){ //Enters if user doesn't have following users but has followers
         let newFollowers = []
         followers.forEach(async function(respp, keyy){
           const userrr = await User.findById(respp.userId);
@@ -363,7 +360,7 @@ router.get("/data", auth, async (req, res) => {
             res.json(userData)
           }
         });
-      } else {
+      } else { //Else gives them empty lists
         userData["followers"] = [];
         userData["following"] = [];
         res.json(userData)
@@ -376,7 +373,7 @@ router.get("/data", auth, async (req, res) => {
     }
 });
 
-router.get("/dataByUser", async (req, res) => {
+router.get("/dataByUser", async (req, res) => { //Responds with data from username
   try {
     const user = await User.findOne({username: req.headers.username});
     let userData = {};
@@ -394,7 +391,7 @@ router.get("/dataByUser", async (req, res) => {
   }
 });
 
-router.get("/getUser", async (req, res) => {
+router.get("/getUser", async (req, res) => { //Responds with username from userId
     try {
       const user = await User.findById(req.headers.id);
       res.json(user.username);
@@ -406,7 +403,7 @@ router.get("/getUser", async (req, res) => {
     }
 });
 
-router.get("/follow", async (req, res) => {
+router.get("/follow", async (req, res) => { //Adds following to user if not already following, and followers to outher user 
   const { idUser, id } = req.query;
   try {
     const user = await User.findOne({following: {userId: id}});
@@ -423,7 +420,7 @@ router.get("/follow", async (req, res) => {
   }
 });
 
-router.get("/unfollow", async (req, res) => {
+router.get("/unfollow", async (req, res) => { //Removes following from user, and followers from other user
   const { idUser, id } = req.query;
   try {
     const user = await User.findById(idUser);
@@ -440,7 +437,7 @@ router.get("/unfollow", async (req, res) => {
   }
 });
 
-router.post("/getFollowerUsernames", async (req, res) => {
+router.post("/getFollowerUsernames", async (req, res) => { //Gets followers and following from user id
   let { id } = req.body;
 
   try {
@@ -512,7 +509,7 @@ router.post("/getFollowerUsernames", async (req, res) => {
   }
 });
 
-router.get("/deactivate", auth, async (req, res) => {
+router.get("/deactivate", auth, async (req, res) => { //Deactivates user (deletes it from database)
     try {
       const user = await User.findByIdAndDelete(req.user.id);
       res.send("Succesfully deactivated")

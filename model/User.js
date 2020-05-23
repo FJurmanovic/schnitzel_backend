@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 var Schema = mongoose.Schema,
     ObjectId = Schema.ObjectId;
 
-const UserSchema = mongoose.Schema({
+const UserSchema = mongoose.Schema({ //Creates new mongoose schema for users
   username: {
     type: String,
     required: true

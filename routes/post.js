@@ -17,7 +17,7 @@ require('dotenv').config()
 
 const cloudinary = require('cloudinary').v2
 
-cloudinary.config({
+cloudinary.config({ //Configurates cloudinary 
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET,
@@ -27,12 +27,12 @@ cloudinary.config({
 router.post(
     "/create",
     [
-        check("title", "Please Enter a Valid Title")
+        check("title", "Please Enter a Valid Title") //Checks if title is empty
         .not()
         .isEmpty(),
-        check("description", "Please enter a valid description").not()
+        check("description", "Please enter a valid description").not() //Checks if description is empty
         .isEmpty(),
-        check("userId", "Invalid userId").not()
+        check("userId", "Invalid userId").not() //Checks if userID is empty
         .isEmpty(),
     ],
     async (req, res) => {
@@ -52,11 +52,11 @@ router.post(
             userId,
             ingredients,
             directions
-        } = req.body;
+        } = req.body; //Declares variables from request's body
         try {
             let points = [];
             if(type === "post"){
-                post = new Post({
+                post = new Post({ //Creates new post in database without ingredients and directions
                     title,
                     type,
                     isPrivate,
@@ -68,7 +68,7 @@ router.post(
                     userId
                 });
             }else if(type === "recipe"){
-                post = new Post({
+                post = new Post({ //Creates new post in database with ingredients and directions
                     title,
                     type,
                     isPrivate,
@@ -121,12 +121,12 @@ router.post(
             if('commentId' in req.body){
                 const { commentId } = req.body;
 
-                await Post.updateOne({_id: postId, 'comments._id': commentId}, { $addToSet: { 'comments.$.reply': {"userId": userId, "comment": comment, "points": points} } });
+                await Post.updateOne({_id: postId, 'comments._id': commentId}, { $addToSet: { 'comments.$.reply': {"userId": userId, "comment": comment, "points": points} } }); //Adds new reply list to comment if commentId is present in req.body 
                 
                 res.send("Added reply")
 
             }else{
-                await Post.findByIdAndUpdate(postId, { $push: { comments: {"userId": userId, "comment": comment, "points": points}}})
+                await Post.findByIdAndUpdate(postId, { $push: { comments: {"userId": userId, "comment": comment, "points": points}}}) //If there is no commentId, adds new comments list
                 
                 res.send("Added comment")
             }
@@ -154,11 +154,11 @@ router.get("/data", auth, async (req, res) => {
 router.get("/addPoint", user, async (req, res) => {
     try {
         if(req.query.type == "post"){
-            await Post.findByIdAndUpdate(req.query.id, { $push: { points: {"userId": req.user.id}}})
+            await Post.findByIdAndUpdate(req.query.id, { $push: { points: {"userId": req.user.id}}}) //Adds point to post
         }else if(req.query.type == "comment"){
-            await Post.updateOne({_id: req.query.id, 'comments._id': req.query.commentId}, { $addToSet: { 'comments.$.points': {"userId": req.user.id} } });
+            await Post.updateOne({_id: req.query.id, 'comments._id': req.query.commentId}, { $addToSet: { 'comments.$.points': {"userId": req.user.id} } }); //Adds point to post's comment
         }else if(req.query.type == "reply"){
-            await Post.findByIdAndUpdate({_id: req.query.id}, { $addToSet: { 'comments.$[comment].reply.$[repl].points': {"userId": req.user.id} } }, { arrayFilters: [{ 'comment._id': req.query.commentId }, { 'repl._id': req.query.replyId }] })
+            await Post.findByIdAndUpdate({_id: req.query.id}, { $addToSet: { 'comments.$[comment].reply.$[repl].points': {"userId": req.user.id} } }, { arrayFilters: [{ 'comment._id': req.query.commentId }, { 'repl._id': req.query.replyId }] }) //Adds point to post's comment's reply
             //await Post.updateOne({_id: req.query.id, 'comments._id': req.query.commentId, 'comments.$.reply._id': req.query.replyId }, { $addToSet: { 'comments.$.reply.0.points': {"userId": req.user.id } } })
         }
         
@@ -171,11 +171,11 @@ router.get("/addPoint", user, async (req, res) => {
 router.get("/removePoint", user, async (req, res) => {
     try {
         if(req.query.type == "post"){
-            await Post.findByIdAndUpdate(req.query.id, { $pull: { points: {"userId": req.user.id}}})
+            await Post.findByIdAndUpdate(req.query.id, { $pull: { points: {"userId": req.user.id}}}) //Removes point from post
         }else if(req.query.type == "comment"){
-            await Post.updateOne({_id: req.query.id, 'comments._id': req.query.commentId}, { $pull: { 'comments.$.points': {"userId": req.user.id} }})
+            await Post.updateOne({_id: req.query.id, 'comments._id': req.query.commentId}, { $pull: { 'comments.$.points': {"userId": req.user.id} }}) //Removes point from post's comment
         }else if(req.query.type == "reply"){
-            await Post.findByIdAndUpdate({_id: req.query.id}, { $pull: { 'comments.$[comment].reply.$[repl].points': {"userId": req.user.id} } }, { arrayFilters: [{ 'comment._id': req.query.commentId }, { 'repl._id': req.query.replyId }] })
+            await Post.findByIdAndUpdate({_id: req.query.id}, { $pull: { 'comments.$[comment].reply.$[repl].points': {"userId": req.user.id} } }, { arrayFilters: [{ 'comment._id': req.query.commentId }, { 'repl._id': req.query.replyId }] }) //Removes point from post's comment's reply
         }
         res.send("Removed point")
     } catch (e) {
@@ -183,7 +183,7 @@ router.get("/removePoint", user, async (req, res) => {
     }
 })
 
-router.get("/getPost", user, async (req, res) => {
+router.get("/getPost", user, async (req, res) => { //Gets post data for current user
     try {
             const post = await Post.findById(req.query.id)
             
@@ -192,13 +192,13 @@ router.get("/getPost", user, async (req, res) => {
                 res.send("This post is private")
             }
 
-            let user = await User.findById(post.userId);
+            let user = await User.findById(post.userId); //If user could not be found by id, it doesn't exist
                     if(user == null){
                         user = {"username": "DeletedUser"}
                     }
             let isFollowing = await User.findById(req.user.id)
-            let check = isFollowing.following.map(follower => follower.userId == user.id)[0]
-            let isPointed = post.points.map(x => x.userId == req.user.id)[0] || false
+            let check = isFollowing.following.map(follower => follower.userId == user.id)[0] //Checks if current user is following user from post
+            let isPointed = post.points.map(x => x.userId == req.user.id)[0] || false //Check if user pointed the post
             
             let postMap = {};
         
@@ -265,7 +265,7 @@ router.get("/getPost", user, async (req, res) => {
     }
 });
 
-router.get("/getPostForEdit", user, async (req, res) => {
+router.get("/getPostForEdit", user, async (req, res) => { //Sends post data that could be edited
     try {
             const post = await Post.findById(req.query.id)
             
@@ -307,7 +307,7 @@ router.get("/getPostForEdit", user, async (req, res) => {
 });
 
 router.post(
-    "/edit", user,
+    "/edit", user, //Updates database with new post data
     async (req, res) => {
       const errors = validationResult(req);
   
@@ -340,11 +340,11 @@ router.post(
     }
   );
 
-router.get("/scroll", user, async (req, res) => {
+router.get("/scroll", user, async (req, res) => { //Infinite scroll implementation for posts that user is following
     const { current, fit, lastDate, lastId } = req.query;
 
     try {
-        if((lastDate == '' || !lastDate) || (lastId == '' || !lastId)){
+        if((lastDate == '' || !lastDate) || (lastId == '' || !lastId)){ //Empty lastId, lastDate means it is first request for posts
             const user = await User.findById(req.user.id);
             let following = user.following || [];
             var ids = following.map(function(x) { return x.userId } );
@@ -398,11 +398,11 @@ router.get("/scroll", user, async (req, res) => {
             };
 
             //res.send({post, last: false});
-        }else{
+        }else{ //If it's not the first request
             const postNew = await Post.find( { $or:[{ createdAt: { $lt: lastDate }}, { $and:[{createdAt: { $eq: lastDate}}, {_id: {$ne: lastId}}]}] } )
             .sort({createdAt: -1});
 
-            if (postNew.length < fit){
+            if (postNew.length < fit){ //If there is no more posts left it will send "last:true"
                 const user = await User.findById(req.user.id);
                 let following = user.following || [];
                 var ids = following.map(function(x) { return x.userId } );
@@ -505,7 +505,7 @@ router.get("/scroll", user, async (req, res) => {
     }
 });
 
-router.get("/removePost", user, async (req, res) => {
+router.get("/removePost", user, async (req, res) => { //Removes post if user created it
     const { idPost } = req.query;
     try {
       const post = await Post.findById(idPost);
@@ -522,7 +522,7 @@ router.get("/removePost", user, async (req, res) => {
   });
 
 
-router.post("/image-upload", upload.single('file'), (req, res) => {
+router.post("/image-upload", upload.single('file'), (req, res) => { //Uploads the image to cloudinary
 
     const {type, id} = req.headers;
 
@@ -551,7 +551,7 @@ router.post("/image-upload", upload.single('file'), (req, res) => {
 
 });
 
-router.get("/scrollProfile", user,  async (req, res) => {
+router.get("/scrollProfile", user,  async (req, res) => { //Same as '/scroll' but only if userId is same as userId from posts
     const { userId, fit, lastDate, lastId } = req.query;
 
     try {

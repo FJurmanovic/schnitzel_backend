@@ -1,5 +1,7 @@
 const jwt_decode = require("jwt-decode");
 
+//Middleware that takes token and decodes it into the userId
+
 module.exports = function(req, res, next) {
   let token = '';
   console.log(req.header("header"))
