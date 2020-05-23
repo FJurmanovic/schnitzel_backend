@@ -403,7 +403,7 @@ router.get("/getUser", async (req, res) => { //Responds with username from userI
     }
 });
 
-router.get("/follow", async (req, res) => { //Adds following to user if not already following, and followers to outher user 
+router.get("/follow", auth, async (req, res) => { //Adds following to user if not already following, and followers to outher user 
   const { idUser, id } = req.query;
   try {
     const user = await User.findOne({following: {userId: id}});
@@ -420,7 +420,7 @@ router.get("/follow", async (req, res) => { //Adds following to user if not alre
   }
 });
 
-router.get("/unfollow", async (req, res) => { //Removes following from user, and followers from other user
+router.get("/unfollow", auth, async (req, res) => { //Removes following from user, and followers from other user
   const { idUser, id } = req.query;
   try {
     const user = await User.findById(idUser);
@@ -437,7 +437,7 @@ router.get("/unfollow", async (req, res) => { //Removes following from user, and
   }
 });
 
-router.post("/getFollowerUsernames", async (req, res) => { //Gets followers and following from user id
+router.post("/getFollowerUsernames", auth, async (req, res) => { //Gets followers and following from user id
   let { id } = req.body;
 
   try {

@@ -25,7 +25,7 @@ cloudinary.config({ //Configurates cloudinary
 
 
 router.post(
-    "/create",
+    "/create", auth,
     [
         check("title", "Please Enter a Valid Title") //Checks if title is empty
         .not()
@@ -97,7 +97,7 @@ router.post(
 );
 
 router.post(
-    "/newComment",
+    "/newComment", auth,
     [
         check("comment", "Please enter a valid comment").not()
         .isEmpty(),
