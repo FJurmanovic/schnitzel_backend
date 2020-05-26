@@ -8,7 +8,9 @@ var path = require('path');
 var cors = require("cors");
 InitiateMongoServer();
 
-const app = express();
+const app = express(),
+            DIST_DIR = path.join(__dirname, 'dist'),
+            HTML_FILE = path.join(DIST_DIR, '/index.html')
 
 const PORT = process.env.PORT || 4000; //Backend server will start at port 4000 if there's no "PORT" in .env
 
@@ -28,6 +30,12 @@ app.use("/api/user", user); //'/api/user' route gives results based on user rout
 app.use("/api/post", post); //'/api/post' rout gives results based on post routes
 
 
+app.use("/api/logos", express.static(path.join(__dirname, '/public/logos')))
+
+
+app.get('*', (req, res) => {
+    res.sendFile(HTML_FILE)
+})
 
 app.listen(PORT, (req, res) => {  //Starts the server
   console.log(`Server Started at PORT ${PORT}`);

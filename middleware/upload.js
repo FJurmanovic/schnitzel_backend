@@ -2,22 +2,24 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 
+const DatauriParser  = require('datauri/parser');
+
+require('dotenv').config()
+
+const cloudinary = require('cloudinary').v2
+
+cloudinary.config({ //Configurates cloudinary 
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 //Middleware for adding images to disk before sending it to cloudinary
 
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        console.log(req.headers)
-        let pth = `./public/${req.headers.type}/${req.headers.id}`;
-        fs.mkdirSync(pth, { recursive: true });
-        cb(null, pth)
-    },
-    filename: function (req, file, cb) {
-        ext = path.extname(file.originalname)
-        cb(null, req.headers.id +  ext)
-        
-    }
-  });
+const storage = multer.memoryStorage();
 
-const upload = multer({ storage: storage });
+const dUri = new DatauriParser();
+const multerUploads = multer({ storage }).single('file');
 
-module.exports = upload;
+const dataUri = req => dUri.format(path.extname(req.file.originalname).toString(), req.file.buffer);
+
+module.exports = { multerUploads, dataUri };

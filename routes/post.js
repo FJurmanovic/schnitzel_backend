@@ -10,7 +10,8 @@ const User = require("../model/User");
 
 const auth = require("../middleware/post");
 const user = require("../middleware/auth");
-const upload = require("../middleware/upload");
+
+const multerUploads = require('../middleware/upload');
 
 
 require('dotenv').config()
@@ -378,6 +379,7 @@ router.get("/scroll", user, async (req, res) => { //Infinite scroll implementati
                 thisPost["hasPhoto"] = pst.hasPhoto || false;
                 thisPost["photoExt"] = pst.photoExt || '';
                 thisPost["description"] = pst.description;
+                thisPost["comments"] = pst.comments.length || 0;
                 thisPost["points"] = pst.points;
                 thisPost["isPointed"] = isPointed;
                 thisPost["categories"] = pst.categories;
@@ -432,6 +434,7 @@ router.get("/scroll", user, async (req, res) => { //Infinite scroll implementati
                     thisPost["hasPhoto"] = pst.hasPhoto || false;
                     thisPost["photoExt"] = pst.photoExt || '';
                     thisPost["description"] = pst.description;
+                    thisPost["comments"] = pst.comments.length || 0;
                     thisPost["points"] = pst.points;
                     thisPost["isPointed"] = isPointed;
                     thisPost["categories"] = pst.categories;
@@ -480,6 +483,7 @@ router.get("/scroll", user, async (req, res) => { //Infinite scroll implementati
                     thisPost["hasPhoto"] = pst.hasPhoto || false;
                     thisPost["photoExt"] = pst.photoExt || '';
                     thisPost["description"] = pst.description;
+                    thisPost["comments"] = pst.comments.length || 0;
                     thisPost["points"] = pst.points;
                     thisPost["isPointed"] = isPointed;
                     thisPost["categories"] = pst.categories;
@@ -522,18 +526,18 @@ router.get("/removePost", user, async (req, res) => { //Removes post if user cre
   });
 
 
-router.post("/image-upload", upload.single('file'), (req, res) => { //Uploads the image to cloudinary
+router.post("/image-upload", multerUploads.multerUploads, (req, res) => { //Uploads the image to cloudinary
 
     const {type, id} = req.headers;
-
-    console.log(req.file)
     
+    console.log(req.file)
+
+    const file = multerUploads.dataUri(req).content;
 
     let ext = path.extname(req.file.originalname);
     let pth1 = 'public';
     let pth2 = `${type}/${id}`
     let pth = `${pth1}/${pth2}`
-    console.log(id, type)
 
 
     //console.log("Request file ---", req);//Here you get file.
@@ -544,7 +548,7 @@ router.post("/image-upload", upload.single('file'), (req, res) => { //Uploads th
     let post2 = pth2 + "/" + id
     console.log(process.env.CLOUDINARY_API_KEY)
 
-    cloudinary.uploader.upload(post, {resource_type: "image", public_id: post2,
+    cloudinary.uploader.upload(file, {resource_type: "image", public_id: post2,
     overwrite: true});
 
     res.send("Done")
@@ -578,6 +582,7 @@ router.get("/scrollProfile", user,  async (req, res) => { //Same as '/scroll' bu
                 thisPost["title"] = pst.title;
                 thisPost["type"] = pst.type;
                 thisPost["description"] = pst.description;
+                thisPost["comments"] = pst.comments.length || 0;
                 thisPost["isPrivate"] = pst.isPrivate || false;
                 thisPost["hasPhoto"] = pst.hasPhoto || false;
                 thisPost["photoExt"] = pst.photoExt || '';
@@ -631,6 +636,7 @@ router.get("/scrollProfile", user,  async (req, res) => { //Same as '/scroll' bu
                     thisPost["hasPhoto"] = pst.hasPhoto || false;
                     thisPost["photoExt"] = pst.photoExt || '';
                     thisPost["description"] = pst.description;
+                    thisPost["comments"] = pst.comments.length || 0;
                     thisPost["points"] = pst.points;
                     thisPost["isPointed"] = isPointed;
                     thisPost["categories"] = pst.categories;
@@ -675,6 +681,7 @@ router.get("/scrollProfile", user,  async (req, res) => { //Same as '/scroll' bu
                     thisPost["hasPhoto"] = pst.hasPhoto || false;
                     thisPost["photoExt"] = pst.photoExt || '';
                     thisPost["description"] = pst.description;
+                    thisPost["comments"] = pst.comments.length || 0;
                     thisPost["points"] = pst.points;
                     thisPost["isPointed"] = isPointed;
                     thisPost["categories"] = pst.categories;
