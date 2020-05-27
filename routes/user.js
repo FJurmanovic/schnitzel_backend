@@ -408,8 +408,13 @@ router.get("/follow", auth, async (req, res) => { //Adds following to user if no
   try {
     const user = await User.findOne({following: {userId: id}});
     if(!user){
-      const newFollowing = await User.findByIdAndUpdate(idUser, { $push: { following: { "userId": id } } });
-      const newFollower = await User.findByIdAndUpdate(id, { $push: { followers: { "userId": idUser } } })
+      const newFollowing = await User.findById(idUser);
+      const newFollower = await User.findById(id);
+
+      if (!!newFollowing && !!newFollower){
+        await User.findByIdAndUpdate(idUser, { $push: { following: { "userId": id } } });
+        await User.findByIdAndUpdate(id, { $push: { followers: { "userId": idUser } } });
+      }
       res.json("Added followers");
     }else{
       res.send("Already following");
@@ -425,8 +430,14 @@ router.get("/unfollow", auth, async (req, res) => { //Removes following from use
   try {
     const user = await User.findById(idUser);
     if(!(!user)){
-      const newFollowing = await User.findByIdAndUpdate(idUser, { $pull: { following: { "userId": id } } });
-      const newFollower = await User.findByIdAndUpdate(id, { $pull: { followers: { "userId": idUser } } })
+
+      const newFollowing = await User.findById(idUser);
+      const newFollower = await User.findById(id);
+
+      if(!!newFollowing && !!newFollower){
+        await User.findByIdAndUpdate(idUser, { $pull: { following: { "userId": id } } });
+        await User.findByIdAndUpdate(id, { $pull: { followers: { "userId": idUser } } });
+      }
       res.json("Removed followers");
     }else{
       res.send("Not following");
