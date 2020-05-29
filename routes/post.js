@@ -509,6 +509,199 @@ router.get("/scroll", user, async (req, res) => { //Infinite scroll implementati
     }
 });
 
+router.get("/scrollExplore", user, async (req, res) => { //Infinite scroll implementation for posts that user is following
+    const { current, fit, lastDate, lastId } = req.query;
+    let { category } = req.query;
+    try {
+        if((lastDate == '' || !lastDate) || (lastId == '' || !lastId)){ //Empty lastId, lastDate means it is first request for posts
+            const user = await User.findById(req.user.id);
+
+            let post = ""
+            if(category != "all"){
+                post = await Post.find({categories: { "$eq": category }, isPrivate: false }).sort({createdAt: -1}).limit(parseInt(fit));
+            }else {
+                post = await Post.find({ isPrivate: false }).sort({createdAt: -1}).limit(parseInt(fit));
+            }
+
+            
+            
+            var postMap = [];
+
+            let i = 0;
+            for(const pst of post){
+                
+                if(pst.isPrivate && pst.userId != req.user.id){
+                    i++
+                    continue;
+                }
+
+                var thisPost = {};
+                let user = await User.findById(pst.userId);
+                    if(user == null){
+                        user = {"username": "DeletedUser"}
+                    }
+                
+                    if(user.isPrivate){
+                        i++
+                        continue
+                    }
+                let isPointed = pst.points.map(x => x.userId == user.id)[0] || false
+
+                thisPost["id"] = pst._id;
+                thisPost["title"] = pst.title;
+                thisPost["type"] = pst.type;
+                thisPost["isPrivate"] = pst.isPrivate || false;
+                thisPost["hasPhoto"] = pst.hasPhoto || false;
+                thisPost["photoExt"] = pst.photoExt || '';
+                thisPost["description"] = pst.description;
+                thisPost["comments"] = pst.comments.length || 0;
+                thisPost["points"] = pst.points;
+                thisPost["isPointed"] = isPointed;
+                thisPost["categories"] = pst.categories;
+                thisPost["userId"] = pst.userId;
+                if(pst.type == "recipe"){
+                    thisPost["ingredients"] = pst.ingredients;
+                    thisPost["directions"] = pst.directions;
+                }
+                thisPost["username"] = user.username;
+                thisPost["createdAt"] = pst.createdAt;
+                
+                postMap.push(thisPost);
+
+                if (i == post.length-1){
+                    res.json({post: postMap, last: false});
+                }
+                i++;
+            };
+
+            //res.send({post, last: false});
+        }else{ //If it's not the first request
+            const postNew = await Post.find( { $or:[{ createdAt: { $lt: lastDate }}, { $and:[{createdAt: { $eq: lastDate}}, {_id: {$ne: lastId}}]}] } )
+            .sort({createdAt: -1});
+
+            if (postNew.length < fit){ //If there is no more posts left it will send "last:true"
+                const user = await User.findById(req.user.id);
+
+                let post = '';
+                
+                if(category != "all"){
+                    post = await Post.find( { $and: [{categories: { "$eq": category }, isPrivate: false }, { $or:[{ createdAt: { $lt: lastDate }}, { $and:[{createdAt: { $eq: lastDate}}, {_id: {$ne: lastId}}]}] }] } )
+                    .sort({createdAt: -1}).limit(postNew.length);
+                }else{
+                    post = await Post.find( { $and: [{isPrivate: false }, { $or:[{ createdAt: { $lt: lastDate }}, { $and:[{createdAt: { $eq: lastDate}}, {_id: {$ne: lastId}}]}] }] } )
+                    .sort({createdAt: -1}).limit(postNew.length);
+                }
+                
+                
+                
+                var postMap = [];
+                let i = 0;
+                for(const pst of post){
+                    if(pst.isPrivate && pst.userId != req.user.id){
+                        i++
+                        continue;
+                    }
+                    var thisPost = {};
+                    let user = await User.findById(pst.userId);
+                    if(user == null){
+                        user = {"username": "DeletedUser"}
+                    }
+                    if(user.isPrivate){
+                        i++
+                        continue
+                    }
+                    let isPointed = pst.points.map(x => x.userId == user.id)[0] || false
+                    
+                    thisPost["id"] = pst._id;
+                    thisPost["title"] = pst.title;
+                    thisPost["type"] = pst.type;
+                    thisPost["isPrivate"] = pst.isPrivate || false;
+                    thisPost["hasPhoto"] = pst.hasPhoto || false;
+                    thisPost["photoExt"] = pst.photoExt || '';
+                    thisPost["description"] = pst.description;
+                    thisPost["comments"] = pst.comments.length || 0;
+                    thisPost["points"] = pst.points;
+                    thisPost["isPointed"] = isPointed;
+                    thisPost["categories"] = pst.categories;
+                    if(pst.type == "recipe"){
+                        thisPost["ingredients"] = pst.ingredients;
+                        thisPost["directions"] = pst.directions;
+                    }
+                    thisPost["userId"] = pst.userId;
+                    thisPost["username"] = user.username;
+                    thisPost["createdAt"] = pst.createdAt;
+                    postMap.push(thisPost);
+
+                    if (i == post.length-1){
+                        res.json({post: postMap, last: false});
+                    }
+                    i++;
+                };
+                
+            }else{
+                const user = await User.findById(req.user.id);
+                let post = '';
+                
+                if(category != "all"){
+                    post = await Post.find( { $and: [{categories: { "$eq": category }, isPrivate: false }, { $or:[{ createdAt: { $lt: lastDate }}, { $and:[{createdAt: { $eq: lastDate}}, {_id: {$ne: lastId}}]}] }] } )
+                    .sort({createdAt: -1}).limit(parseInt(fit));
+                }else{
+                    post = await Post.find( { $and: [{isPrivate: false }, { $or:[{ createdAt: { $lt: lastDate }}, { $and:[{createdAt: { $eq: lastDate}}, {_id: {$ne: lastId}}]}] }] } )
+                    .sort({createdAt: -1}).limit(parseInt(fit));
+                }
+                
+                var postMap = [];
+                let i = 0;
+                for(const pst of post){
+                    if(pst.isPrivate && pst.userId != req.user.id){
+                        i++
+                        continue;
+                    }
+                    var thisPost = {};
+                    let user = await User.findById(pst.userId);
+                    if(user == null){
+                        user = {"username": "DeletedUser"}
+                    }
+
+                    if(user.isPrivate){
+                        i++
+                        continue
+                    }
+                    let isPointed = pst.points.map(x => x.userId == user.id)[0] || false
+
+                    thisPost["id"] = pst._id;
+                    thisPost["title"] = pst.title;
+                    thisPost["type"] = pst.type;
+                    thisPost["isPrivate"] = pst.isPrivate || false;
+                    thisPost["hasPhoto"] = pst.hasPhoto || false;
+                    thisPost["photoExt"] = pst.photoExt || '';
+                    thisPost["description"] = pst.description;
+                    thisPost["comments"] = pst.comments.length || 0;
+                    thisPost["points"] = pst.points;
+                    thisPost["isPointed"] = isPointed;
+                    thisPost["categories"] = pst.categories;
+                    if(pst.type == "recipe"){
+                        thisPost["ingredients"] = pst.ingredients;
+                        thisPost["directions"] = pst.directions;
+                    }
+                    thisPost["userId"] = pst.userId;
+                    thisPost["username"] = user.username;
+                    thisPost["createdAt"] = pst.createdAt;
+                    postMap.push(thisPost);
+
+                    if (i == post.length-1){
+                        res.json({post: postMap, last: false});
+                    }
+                    i++;
+                };
+            }
+        }
+        res.send({ end: true })
+    } catch (e) {
+        res.send({ message: "Error in fetchin posts" })
+    }
+});
+
 router.get("/removePost", user, async (req, res) => { //Removes post if user created it
     const { idPost } = req.query;
     try {
