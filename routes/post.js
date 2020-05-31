@@ -509,7 +509,7 @@ router.get("/scroll", user, async (req, res) => { //Infinite scroll implementati
     }
 });
 
-router.get("/scrollExplore", user, async (req, res) => { //Infinite scroll implementation for posts that user is following
+router.get("/scrollExplore", user, async (req, res) => { //Infinite scroll implementation for posts that are public
     const { current, fit, lastDate, lastId } = req.query;
     let { category } = req.query;
     try {
@@ -573,6 +573,13 @@ router.get("/scrollExplore", user, async (req, res) => { //Infinite scroll imple
                 }
                 i++;
             };
+
+            console.log(post.length)
+            
+
+            if(post.length < 1) {
+                res.json({post: postMap, last: true});
+            }
 
             //res.send({post, last: false});
         }else{ //If it's not the first request
