@@ -69,6 +69,8 @@ router.post(
                     userId
                 });
             }else if(type === "recipe"){
+                let newIngredients = [];
+                newIngredients = ingredients.filter(x => !!x.name);
                 post = new Post({ //Creates new post in database with ingredients and directions
                     title,
                     type,
@@ -79,7 +81,7 @@ router.post(
                     categories,
                     points,
                     userId,
-                    ingredients,
+                    "ingredients": newIngredients,
                     directions
                 })
             }
@@ -199,7 +201,7 @@ router.get("/getPost", user, async (req, res) => { //Gets post data for current 
                     }
             let isFollowing = await User.findById(req.user.id)
             let check = isFollowing.following.map(follower => follower.userId == user.id)[0] //Checks if current user is following user from post
-            let isPointed = post.points.map(x => x.userId == req.user.id)[0] || false //Check if user pointed the post
+            let isPointed = post.points.filter(x => x.userId == req.user.id).map(x => x.userId == req.user.id)[0] || false //Check if user pointed the post
             
             let postMap = {};
         
@@ -230,7 +232,7 @@ router.get("/getPost", user, async (req, res) => { //Gets post data for current 
                     if(userInComment == null){
                         userInComment = {"username": "DeletedUser"}
                     }
-                let isCommentPointed = comment.points.map(x => x.userId == req.user.id)[0] || false
+                let isCommentPointed = comment.points.filter(x => x.userId == req.user.id).map(x => x.userId == req.user.id)[0] || false
                     
                 newComment["id"] = comment.id,
                 newComment["comment"] = comment.comment,
@@ -244,7 +246,7 @@ router.get("/getPost", user, async (req, res) => { //Gets post data for current 
                     if(userInReply == null){
                         userInReply = {"username": "DeletedUser"}
                     }
-                    let isReplyPointed = reply.points.map(x => x.userId == req.user.id)[0] || false
+                    let isReplyPointed = reply.points.filter(x => x.userId == req.user.id).map(x => x.userId == req.user.id)[0] || false
                     newReply["id"] = reply.id,
                     newReply["comment"] = reply.comment,
                     newReply["createdAt"] = reply.createdAt,
@@ -280,7 +282,7 @@ router.get("/getPostForEdit", user, async (req, res) => { //Sends post data that
                     }
             let isFollowing = await User.findById(req.user.id)
             let check = isFollowing.following.map(follower => follower.userId == user.id)[0]
-            let isPointed = post.points.map(x => x.userId == req.user.id)[0] || false
+            let isPointed = post.points.filter(x => x.userId == req.user.id).map(x => x.userId == req.user.id)[0] || false
             
             let postMap = {};
         
@@ -370,7 +372,7 @@ router.get("/scroll", user, async (req, res) => { //Infinite scroll implementati
                         user = {"username": "DeletedUser"}
                     }
 
-                let isPointed = pst.points.map(x => x.userId == user.id)[0] || false
+                let isPointed = pst.points.filter(x => x.userId == req.user.id).map(x => x.userId == req.user.id)[0] || false
 
                 thisPost["id"] = pst._id;
                 thisPost["title"] = pst.title;
@@ -425,7 +427,7 @@ router.get("/scroll", user, async (req, res) => { //Infinite scroll implementati
                     if(user == null){
                         user = {"username": "DeletedUser"}
                     }
-                    let isPointed = pst.points.map(x => x.userId == user.id)[0] || false
+                    let isPointed = pst.points.filter(x => x.userId == req.user.id).map(x => x.userId == req.user.id)[0] || false
                     
                     thisPost["id"] = pst._id;
                     thisPost["title"] = pst.title;
@@ -474,7 +476,7 @@ router.get("/scroll", user, async (req, res) => { //Infinite scroll implementati
                     if(user == null){
                         user = {"username": "DeletedUser"}
                     }
-                    let isPointed = pst.points.map(x => x.userId == user.id)[0] || false
+                    let isPointed = pst.points.filter(x => x.userId == req.user.id).map(x => x.userId == req.user.id)[0] || false
 
                     thisPost["id"] = pst._id;
                     thisPost["title"] = pst.title;
@@ -545,7 +547,7 @@ router.get("/scrollExplore", user, async (req, res) => { //Infinite scroll imple
                         i++
                         continue
                     }
-                let isPointed = pst.points.map(x => x.userId == user.id)[0] || false
+                let isPointed = pst.points.filter(x => x.userId == req.user.id).map(x => x.userId == req.user.id)[0] || false
 
                 thisPost["id"] = pst._id;
                 thisPost["title"] = pst.title;
@@ -574,7 +576,7 @@ router.get("/scrollExplore", user, async (req, res) => { //Infinite scroll imple
                 i++;
             };
 
-            console.log(post.length)
+            //console.log(post.length)
             
 
             if(post.length < 1) {
@@ -617,7 +619,7 @@ router.get("/scrollExplore", user, async (req, res) => { //Infinite scroll imple
                         i++
                         continue
                     }
-                    let isPointed = pst.points.map(x => x.userId == user.id)[0] || false
+                    let isPointed = pst.points.filter(x => x.userId == req.user.id).map(x => x.userId == req.user.id)[0] || false
                     
                     thisPost["id"] = pst._id;
                     thisPost["title"] = pst.title;
@@ -674,7 +676,7 @@ router.get("/scrollExplore", user, async (req, res) => { //Infinite scroll imple
                         i++
                         continue
                     }
-                    let isPointed = pst.points.map(x => x.userId == user.id)[0] || false
+                    let isPointed = pst.points.filter(x => x.userId == req.user.id).map(x => x.userId == req.user.id)[0] || false
 
                     thisPost["id"] = pst._id;
                     thisPost["title"] = pst.title;
@@ -705,23 +707,23 @@ router.get("/scrollExplore", user, async (req, res) => { //Infinite scroll imple
         }
         res.send({ end: true })
     } catch (e) {
-        res.send({ message: "Error in fetchin posts" })
+        res.send({ message: "Error in fetching posts" })
     }
 });
 
 router.get("/removePost", user, async (req, res) => { //Removes post if user created it
-    const { idPost } = req.query;
+    const { postId } = req.query;
     try {
-      const post = await Post.findById(idPost);
-      if(!(!post) && (post.userId == req.user.id)){
-        const removePost = await Post.findByIdAndRemove(idPost);
+      const post = await Post.findById(postId);
+      if(!!post && (post.userId == req.user.id)){
+        await Post.findByIdAndRemove(postId);
         res.json("Removed post");
       }else{
         res.send("Not your post");
       }
       
     } catch(e) {
-        res.send({ message: "Error in fetchin posts" })
+        res.send({ message: "Error in fetching posts" })
     }
   });
 
@@ -730,7 +732,7 @@ router.post("/image-upload", multerUploads.multerUploads, (req, res) => { //Uplo
 
     const {type, id} = req.headers;
     
-    console.log(req.file)
+    //console.log(req.file)
 
     const file = multerUploads.dataUri(req).content;
 
@@ -743,10 +745,10 @@ router.post("/image-upload", multerUploads.multerUploads, (req, res) => { //Uplo
     //console.log("Request file ---", req);//Here you get file.
     // upload image here
 
-    console.log(pth + "/" + id + ext)
+    //console.log(pth + "/" + id + ext)
     let post = pth + "/" + id + ext
     let post2 = pth2 + "/" + id
-    console.log(process.env.CLOUDINARY_API_KEY)
+    //console.log(process.env.CLOUDINARY_API_KEY)
 
     cloudinary.uploader.upload(file, {resource_type: "image", public_id: post2,
     overwrite: true});
@@ -776,7 +778,7 @@ router.get("/scrollProfile", user,  async (req, res) => { //Same as '/scroll' bu
                         user= {"username": "DeletedUser"}
                     }
                 
-                let isPointed = pst.points.map(x => x.userId == user.id)[0] || false
+                let isPointed = pst.points.filter(x => x.userId == req.user.id).map(x => x.userId == req.user.id)[0] || false
 
                 thisPost["id"] = pst._id;
                 thisPost["title"] = pst.title;
@@ -827,7 +829,7 @@ router.get("/scrollProfile", user,  async (req, res) => { //Same as '/scroll' bu
                         user= {"username": "DeletedUser"}
                     }
                     
-                    let isPointed = pst.points.map(x => x.userId == user.id)[0] || false
+                    let isPointed = pst.points.filter(x => x.userId == req.user.id).map(x => x.userId == req.user.id)[0] || false
 
                     thisPost["id"] = pst._id;
                     thisPost["title"] = pst.title;
@@ -872,7 +874,7 @@ router.get("/scrollProfile", user,  async (req, res) => { //Same as '/scroll' bu
                         user= {"username": "DeletedUser"}
                     }
                     
-                    let isPointed = pst.points.map(x => x.userId == user.id)[0] || false
+                    let isPointed = pst.points.filter(x => x.userId == req.user.id).map(x => x.userId == req.user.id)[0] || false
 
                     thisPost["id"] = pst._id;
                     thisPost["title"] = pst.title;

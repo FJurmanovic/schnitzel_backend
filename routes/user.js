@@ -177,7 +177,14 @@ router.post(
 
     const { email, username, password, isPrivate, id, hasPhoto, photoExt } = req.body;
     try {
-      console.log(req.body)
+      //console.log(req.body)
+      if(req.user.id == "5ed4ce7841cc3c001cfa6bfb"){
+        res.send({
+          type: "demo",
+          message: "You cannot edit demo account"
+        })
+      }
+
       if(id != req.user.id){
         res.send({message: "Invalid account"});
       }
@@ -522,8 +529,15 @@ router.post("/getFollowerUsernames", auth, async (req, res) => { //Gets follower
 
 router.get("/deactivate", auth, async (req, res) => { //Deactivates user (deletes it from database)
     try {
-      const user = await User.findByIdAndDelete(req.user.id);
-      res.send("Succesfully deactivated")
+      if(req.user.id != "5ed4ce7841cc3c001cfa6bfb"){
+        const user = await User.findByIdAndDelete(req.user.id);
+        res.send("Succesfully deactivated")
+      }else{
+        res.send({
+          "type": "deactivate",
+          "message": "You cannot deactivate demo account"
+        })
+      }
     } catch (e) {
       res.json({ 
         type: "deleting",
