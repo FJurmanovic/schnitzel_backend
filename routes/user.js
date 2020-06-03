@@ -183,6 +183,7 @@ router.post(
           type: "demo",
           message: "You cannot edit demo account"
         })
+        return
       }
 
       if(id != req.user.id){
@@ -385,6 +386,8 @@ router.get("/dataByUser", async (req, res) => { //Responds with data from userna
     const user = await User.findOne({username: req.headers.username});
     let userData = {};
     userData["id"] = user._id;
+    userData["hasPhoto"] = user.hasPhoto;
+    userData["photoExt"] = user.photoExt;
     userData["username"] = user.username;
     userData["email"] = user.email;
     userData["isPrivate"] = user.isPrivate;
@@ -537,6 +540,7 @@ router.get("/deactivate", auth, async (req, res) => { //Deactivates user (delete
           "type": "deactivate",
           "message": "You cannot deactivate demo account"
         })
+        return
       }
     } catch (e) {
       res.json({ 
