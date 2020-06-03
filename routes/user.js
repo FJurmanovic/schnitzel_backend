@@ -7,6 +7,7 @@ const router = express.Router();
 const mongoose = require("mongoose");
 
 const User = require("../model/User");
+const Post = require("../model/Post");
 const auth = require("../middleware/auth");
 
 let errRoute = {};
@@ -18,7 +19,11 @@ router.post(
     [
         check("username", "Please Enter a Valid Username") //Checks if "username" request is empty
         .not()
-        .isEmpty(),
+        .isEmpty()
+        .isLength({
+          min: 2,
+          max: 10
+        }),
         check("email", "Please enter a valid email").isEmail(), //Checks if "email" request is email
         check("password", "Please enter a valid password").isLength({ //Checks if "password" request is smaller than 6 characters
             min: 6
@@ -381,15 +386,21 @@ router.get("/data", auth, async (req, res) => { //Sending the user data to front
     }
 });
 
-router.get("/dataByUser", async (req, res) => { //Responds with data from username
+router.get("/dataByUser", auth, async (req, res) => { //Responds with data from username
   try {
     const user = await User.findOne({username: req.headers.username});
+    const profile = await User.findById(req.user.id)
+    const postNum = (await Post.find({userId: user._id })).length
+
+    const isFollowing = profile.following.filter(x => x.userId == user._id).map(x => x.userId == user._id)[0] || false
+
     let userData = {};
     userData["id"] = user._id;
     userData["hasPhoto"] = user.hasPhoto;
     userData["photoExt"] = user.photoExt;
     userData["username"] = user.username;
-    userData["email"] = user.email;
+    userData["isFollowing"] = isFollowing;
+    userData["postNum"] = postNum;
     userData["isPrivate"] = user.isPrivate;
     userData["createdAt"] = user.createdAt;
     res.json(userData);
