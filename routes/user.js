@@ -170,7 +170,24 @@ router.post(
 );
 
 router.post(
-  "/edit", auth, //Uses middleware that checks token and returns user id
+  "/edit", [
+    check("username", "Please Enter a Valid Username") //Checks if "username" request is empty
+    .optional()
+    .not()
+    .isEmpty()
+    .isLength({
+      min: 2,
+      max: 10
+    }),
+    check("email", "Please enter a valid email")
+    .optional()
+    .isEmail(), //Checks if "email" request is email
+    check("password", "Please enter a valid password")
+    .optional()
+    .isLength({ //Checks if "password" request is smaller than 6 characters
+        min: 6
+    })
+], auth, //Uses middleware that checks token and returns user id
   async (req, res) => {
     const errors = validationResult(req);
 
