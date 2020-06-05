@@ -340,61 +340,31 @@ router.get("/data", auth, async (req, res) => { //Sending the user data to front
       let { following, followers } = user;
 
       //console.log(following)
-      let newFollowing = []
-      if(following.length > 0){ //Enters if user has any following users
-        for(const [key, resp] of following.entries()) {
-          const userr = await User.findById(resp.userId); //Adding current username's from followerId's 
-          if(!(userr === null)){ 
-            newFollowing[key] = {
-              "userId": resp.userId,
-              "username": userr.username
-            };
-          }
-          if (key == following.length-1){
-            userData["following"] = newFollowing;
-            let newFollowers = []
-            if(followers.length > 0){
-              for(const [keyy, respp] of followers.entries()){
-                const userrr = await User.findById(respp.userId);
-                if(!(userrr === null)){ 
-                  newFollowers[keyy] = {
-                    "userId": respp.userId,
-                    "username": userrr.username
-                  };
-                }
-                if (keyy == followers.length-1){
-                  userData["followers"] = newFollowers;
-                  res.json(userData)
-                }
-              };
-            } else {
-              userData["followers"] = []
-              res.json(userData);
-            }
-          }
+      let newFollowing = [] 
+      let newFollowers = []
+      for(const [key, resp] of following.entries()){
+        const userr = await User.findById(resp.userId);
+        if(!(userr === null)){ 
+          newFollowing[key] = {
+            "userId": resp.userId,
+            "username": userr.username
+          };
         }
-
-      }else if(followers.length > 0){ //Enters if user doesn't have following users but has followers
-        let newFollowers = []
-        for(const [keyy, respp] of followers.entries()){
-          const userrr = await User.findById(respp.userId);
-          if(!(userrr === null)){ 
-            newFollowers[keyy] = {
-              "userId": respp.userId,
-              "username": userrr.username
-            };
-          }
-          if (keyy == followers.length-1){
-            userData["followers"] = newFollowers;
-            userData["following"] = [];
-            res.json(userData)
-          }
-        };
-      } else { //Else gives them empty lists
-        userData["followers"] = [];
-        userData["following"] = [];
-        res.json(userData)
       }
+      for(const [key, resp] of followers.entries()){
+        const userr = await User.findById(resp.userId);
+        if(!(userr === null)){ 
+          newFollowers[key] = {
+            "userId": resp.userId,
+            "username": userr.username
+          };
+        }
+      }
+      userData["followers"] = newFollowers || []
+      userData["following"] = newFollowing || []
+
+      res.send(userData)
+
     } catch (e) {
       res.json({ 
         type: "fetch",
@@ -496,60 +466,35 @@ router.post("/getFollowerUsernames", auth, async (req, res) => { //Gets follower
     let { following, followers } = user;
 
     //console.log(following)
-    let newFollowing = []
-    if(following.length > 0){
-      for(const [key, resp] of following.entries()){
-        const userr = await User.findById(resp.userId);
-        if(!(userr === null)){ 
-          newFollowing[key] = {
-            "userId": resp.userId,
-            "username": userr.username
-          };
-        }
-        if (key == following.length-1){
-          userData["following"] = newFollowing;
-          let newFollowers = []
-          if(followers.length > 0){
-            for(const [keyy, respp] of followers.entries()){
-              const userrr = await User.findById(respp.userId);
-              if(!(userrr === null)){ 
-                newFollowers[key] = {
-                  "userId": respp.userId,
-                  "username": userrr.username
-                };
-              }
-              if (keyy == followers.length-1){
-                userData["followers"] = newFollowers;
-                res.json(userData)
-              }
-            };
-          } else {
-            res.json(userData);
-          }
-        }
+    let newFollowing = [] 
+    let newFollowers = []
+    for(const [key, resp] of following.entries()){
+      const userr = await User.findById(resp.userId);
+      if(!(userr === null)){ 
+        newFollowing[key] = {
+          "userId": resp.userId,
+          "username": userr.username
+        };
       }
-
-    }else if(followers.length > 0){
-      let newFollowers = []
-      for(const [keyy, respp] of followers.entries()){
-        const userrr = await User.findById(respp.userId);
-        if(!(userrr === null)){ 
-          newFollowers[keyy] = {
-            "userId": respp.userId,
-            "username": userrr.username
-          };
-        }
-        if (keyy == followers.length-1){
-          userData["followers"] = newFollowers;
-          userData["following"] = [];
-          res.json(userData)
-        }
-      };
-    } else {
-      userData["followers"] = [];
-      userData["following"] = [];
-      res.json(userData)
     }
+    for(const [key, resp] of followers.entries()){
+      const userr = await User.findById(resp.userId);
+      if(!(userr === null)){ 
+        newFollowers[key] = {
+          "userId": resp.userId,
+          "username": userr.username
+        };
+      }
+    }
+
+    userData = {
+      followers: newFollowers,
+      following: newFollowing
+    }
+
+    res.send(userData)
+
+        
   } catch (e) {
     res.json({ 
       type: "fetch",
