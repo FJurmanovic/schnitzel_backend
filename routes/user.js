@@ -342,7 +342,7 @@ router.get("/data", auth, async (req, res) => { //Sending the user data to front
       //console.log(following)
       let newFollowing = []
       if(following.length > 0){ //Enters if user has any following users
-        following.forEach(async function(resp, key){
+        for(const [key, resp] of following.entries()) {
           const userr = await User.findById(resp.userId); //Adding current username's from followerId's 
           if(!(userr === null)){ 
             newFollowing[key] = {
@@ -354,7 +354,7 @@ router.get("/data", auth, async (req, res) => { //Sending the user data to front
             userData["following"] = newFollowing;
             let newFollowers = []
             if(followers.length > 0){
-              followers.forEach(async function(respp, keyy){
+              for(const [keyy, respp] of followers.entries()){
                 const userrr = await User.findById(respp.userId);
                 if(!(userrr === null)){ 
                   newFollowers[keyy] = {
@@ -366,17 +366,17 @@ router.get("/data", auth, async (req, res) => { //Sending the user data to front
                   userData["followers"] = newFollowers;
                   res.json(userData)
                 }
-              });
+              };
             } else {
               userData["followers"] = []
               res.json(userData);
             }
           }
-        })
+        }
 
       }else if(followers.length > 0){ //Enters if user doesn't have following users but has followers
         let newFollowers = []
-        followers.forEach(async function(respp, keyy){
+        for(const [keyy, respp] of followers.entries()){
           const userrr = await User.findById(respp.userId);
           if(!(userrr === null)){ 
             newFollowers[keyy] = {
@@ -389,7 +389,7 @@ router.get("/data", auth, async (req, res) => { //Sending the user data to front
             userData["following"] = [];
             res.json(userData)
           }
-        });
+        };
       } else { //Else gives them empty lists
         userData["followers"] = [];
         userData["following"] = [];
@@ -498,7 +498,7 @@ router.post("/getFollowerUsernames", auth, async (req, res) => { //Gets follower
     //console.log(following)
     let newFollowing = []
     if(following.length > 0){
-      following.forEach(async function(resp, key){
+      for(const [key, resp] of following.entries()){
         const userr = await User.findById(resp.userId);
         if(!(userr === null)){ 
           newFollowing[key] = {
@@ -510,7 +510,7 @@ router.post("/getFollowerUsernames", auth, async (req, res) => { //Gets follower
           userData["following"] = newFollowing;
           let newFollowers = []
           if(followers.length > 0){
-            followers.forEach(async function(respp, keyy){
+            for(const [keyy, respp] of followers.entries()){
               const userrr = await User.findById(respp.userId);
               if(!(userrr === null)){ 
                 newFollowers[key] = {
@@ -522,16 +522,16 @@ router.post("/getFollowerUsernames", auth, async (req, res) => { //Gets follower
                 userData["followers"] = newFollowers;
                 res.json(userData)
               }
-            });
+            };
           } else {
             res.json(userData);
           }
         }
-      })
+      }
 
     }else if(followers.length > 0){
       let newFollowers = []
-      followers.forEach(async function(respp, keyy){
+      for(const [keyy, respp] of followers.entries()){
         const userrr = await User.findById(respp.userId);
         if(!(userrr === null)){ 
           newFollowers[keyy] = {
@@ -544,7 +544,7 @@ router.post("/getFollowerUsernames", auth, async (req, res) => { //Gets follower
           userData["following"] = [];
           res.json(userData)
         }
-      });
+      };
     } else {
       userData["followers"] = [];
       userData["following"] = [];
