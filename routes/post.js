@@ -25,6 +25,32 @@ cloudinary.config({ //Configurates cloudinary
 });
 
 
+function timeSince(datetime) {
+    var seconds = Math.floor((new Date() - datetime) / 1000);
+    let time = null;
+    if((time = Math.floor(seconds / 60 / 60 / 24 / 30 / 12)) > 1){
+        return `${time} years ago.`
+    }else if ((time = Math.floor(seconds / 60 / 60 / 24 / 30)) > 1){
+        return `${time} months ago.`
+    }else if ((time = Math.floor(seconds / 60 / 60 / 24)) > 1){
+        return `${time} days ago.`
+    }else if ((time = Math.floor(seconds / 60 / 60) > 1)){
+        return `${time} hours ago.`
+    }else if ((time = Math.floor(seconds / 60) > 1)) {
+        if (time >= 30) {
+            return "30 minutes ago."
+        }else if (time >= 15) {
+            return "15 minutes ago."
+        }else{
+            return "few minutes ago"
+        }
+    }else {
+        return "few seconds ago"
+    }
+
+}
+
+
 router.post(
     "/create", auth,
     [
@@ -222,6 +248,7 @@ router.get("/getPost", user, async (req, res) => { //Gets post data for current 
             postMap["userId"] = post.userId;
             postMap["username"] = user.username;
             postMap["createdAt"] = post.createdAt;
+            postMap["timeAgo"] = timeSince(post.createdAt);
             postMap["comments"] = [];
 
             let comments = post.comments;
@@ -392,6 +419,7 @@ router.get("/scroll", user, async (req, res) => { //Infinite scroll implementati
                 }
                 thisPost["username"] = user.username;
                 thisPost["createdAt"] = pst.createdAt;
+                thisPost["timeAgo"] = timeSince(pst.createdAt);
                 
                 postMap.push(thisPost);
 
@@ -447,6 +475,7 @@ router.get("/scroll", user, async (req, res) => { //Infinite scroll implementati
                     thisPost["userId"] = pst.userId;
                     thisPost["username"] = user.username;
                     thisPost["createdAt"] = pst.createdAt;
+                    thisPost["timeAgo"] = timeSince(pst.createdAt);
                     postMap.push(thisPost);
 
                     if (i == post.length-1){
@@ -496,6 +525,7 @@ router.get("/scroll", user, async (req, res) => { //Infinite scroll implementati
                     thisPost["userId"] = pst.userId;
                     thisPost["username"] = user.username;
                     thisPost["createdAt"] = pst.createdAt;
+                    thisPost["timeAgo"] = timeSince(pst.createdAt);
                     postMap.push(thisPost);
 
                     if (i == post.length-1){
@@ -567,6 +597,7 @@ router.get("/scrollExplore", user, async (req, res) => { //Infinite scroll imple
                 }
                 thisPost["username"] = user.username;
                 thisPost["createdAt"] = pst.createdAt;
+                thisPost["timeAgo"] = timeSince(pst.createdAt);
                 
                 postMap.push(thisPost);
 
@@ -639,6 +670,7 @@ router.get("/scrollExplore", user, async (req, res) => { //Infinite scroll imple
                     thisPost["userId"] = pst.userId;
                     thisPost["username"] = user.username;
                     thisPost["createdAt"] = pst.createdAt;
+                    thisPost["timeAgo"] = timeSince(pst.createdAt);
                     postMap.push(thisPost);
 
                     if (i == post.length-1){
@@ -696,6 +728,7 @@ router.get("/scrollExplore", user, async (req, res) => { //Infinite scroll imple
                     thisPost["userId"] = pst.userId;
                     thisPost["username"] = user.username;
                     thisPost["createdAt"] = pst.createdAt;
+                    thisPost["timeAgo"] = timeSince(pst.createdAt);
                     postMap.push(thisPost);
 
                     if (i == post.length-1){
@@ -798,6 +831,7 @@ router.get("/scrollProfile", user,  async (req, res) => { //Same as '/scroll' bu
                 thisPost["userId"] = pst.userId;
                 thisPost["username"] = user.username;
                 thisPost["createdAt"] = pst.createdAt;
+                thisPost["timeAgo"] = timeSince(pst.createdAt);
                 postMap.push(thisPost);
                 if (i == post.length-1){
                     res.json({post: postMap, last: false});
@@ -849,6 +883,7 @@ router.get("/scrollProfile", user,  async (req, res) => { //Same as '/scroll' bu
                     thisPost["userId"] = pst.userId;
                     thisPost["username"] = user.username;
                     thisPost["createdAt"] = pst.createdAt;
+                    thisPost["timeAgo"] = timeSince(pst.createdAt);
                     postMap.push(thisPost);
                     if (i == post.length-1){
                         res.json({post: postMap, last: true});
@@ -894,6 +929,7 @@ router.get("/scrollProfile", user,  async (req, res) => { //Same as '/scroll' bu
                     thisPost["userId"] = pst.userId;
                     thisPost["username"] = user.username;
                     thisPost["createdAt"] = pst.createdAt;
+                    thisPost["timeAgo"] = timeSince(pst.createdAt);
                     postMap.push(thisPost);
                     if (i == post.length-1){
                         res.json({post: postMap, last: false});
