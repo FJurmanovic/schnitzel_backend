@@ -24,6 +24,15 @@ cloudinary.config({ //Configurates cloudinary
     api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+const serviceKey = path.join(__dirname, '../keys.json')
+
+const {Storage} = require('@google-cloud/storage');
+const storage = new Storage({
+    keyFilename: serviceKey,
+    projectId: 'schnitzel-278322'
+});
+const bucket = storage.bucket("schnitzel")
+
 
 function timeSince(datetime) {
     var seconds = Math.floor((new Date() - datetime) / 1000);
@@ -760,6 +769,25 @@ router.get("/removePost", user, async (req, res) => { //Removes post if user cre
     }
   });
 
+  const uploadImage = (file, id, type) => new Promise((res, reject) => {
+    const { originalname, buffer } = file
+
+    const blob = bucket.file(`${type}/${id}/${id}${path.extname(originalname.replace(/ /g, "_"))}`)
+    const blobStream = blob.createWriteStream({
+        resumable: false
+    })
+    blobStream.on('finish', () => {
+        const publicUrl = format(
+        `https://storage.googleapis.com/${bucket.name}//${blob.name}`
+        )
+        res(publicUrl)
+    })
+    .on('error', () => {
+        reject(`Unable to upload image, something went wrong`)
+    })
+    .end(buffer)
+  })
+
 
 router.post("/image-upload", multerUploads.multerUploads, (req, res) => { //Uploads the image to cloudinary
 
@@ -783,8 +811,12 @@ router.post("/image-upload", multerUploads.multerUploads, (req, res) => { //Uplo
     let post2 = pth2 + "/" + id
     //console.log(process.env.CLOUDINARY_API_KEY)
 
+    console.log(req.file)
+
     cloudinary.uploader.upload(file, {resource_type: "image", public_id: post2,
     overwrite: true});
+
+    uploadImage(req.file, id, type);
 
     res.send("Done")
 
