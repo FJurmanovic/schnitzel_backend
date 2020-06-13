@@ -761,6 +761,9 @@ router.get("/removePost", user, async (req, res) => { //Removes post if user cre
     try {
       const post = await Post.findById(postId);
       if(!!post && (post.userId == req.user.id)){
+          if(post.hasPhoto){
+              bucket.deleteFiles({ prefix: `post/${postId}` })
+          }
         await Post.findByIdAndRemove(postId);
         res.json("Removed post");
       }else{
