@@ -11,6 +11,8 @@ const User = require("../model/User");
 const auth = require("../middleware/post");
 const user = require("../middleware/auth");
 
+const sharp = require("sharp");
+
 const multerUploads = require('../middleware/upload');
 
 
@@ -27,6 +29,7 @@ cloudinary.config({ //Configurates cloudinary
 const serviceKey = path.join(__dirname, '../keys.json')
 
 const {Storage} = require('@google-cloud/storage');
+const { nextTick } = require("process");
 const storage = new Storage({
     keyFilename: serviceKey,
     projectId: 'schnitzel-278322'
@@ -769,56 +772,60 @@ router.get("/removePost", user, async (req, res) => { //Removes post if user cre
     }
   });
 
-  const uploadImage = (file, id, type) => new Promise((res, reject) => {
-    const { originalname, buffer } = file
+  const uploadImage = (file, id, type) => new Promise((resolve, reject) => {
 
-    const blob = bucket.file(`${type}/${id}/${id}${path.extname(originalname.replace(/ /g, "_"))}`)
-    const blobStream = blob.createWriteStream({
-        resumable: false
-    })
-    blobStream.on('finish', () => {
-        const publicUrl = format(
-        `https://storage.googleapis.com/${bucket.name}//${blob.name}`
-        )
-        res(publicUrl)
-    })
-    .on('error', () => {
-        reject(`Unable to upload image, something went wrong`)
-    })
-    .end(buffer)
+    
   })
 
-
-router.post("/image-upload", multerUploads.multerUploads, (req, res) => { //Uploads the image to cloudinary
-
+router.post("/image-upload", multerUploads.multerUploads, async(req, res) => { //Uploads the image to cloudinary
     const {type, id} = req.headers;
-    
+
+    try {
+        const file = multerUploads.dataUri(req).content;
+
+        let ext = path.extname(req.file.originalname);
+        let pth1 = 'public';
+        let pth2 = `${type}/${id}`
+        let pth = `${pth1}/${pth2}`
+
+
+        //console.log("Request file ---", req);//Here you get file.
+        // upload image here
+
+        //console.log(pth + "/" + id + ext)
+        let post = pth + "/" + id + ext
+        let post2 = pth2 + "/" + id
+        //console.log(process.env.CLOUDINARY_API_KEY)
+
+
+        cloudinary.uploader.upload(file, {resource_type: "image", public_id: post2,
+        overwrite: true});
+
+        await Post.findByIdAndUpdate(id, { photoExt: ".webp" })
+
+        const blob = bucket.file(`${type}/${id}/${id}.webp`)
+        const blobStream = blob.createWriteStream({
+            resumable: false
+        })
+        const toWebp = sharp(req.file.buffer)
+                            .webp({ lossless: true })
+                            .toBuffer()
+        blobStream.on('finish', () => {
+            res.send("Image uploaded")
+        })
+        blobStream.on('error', (err) => {
+            res.send(err)
+        })
+        toWebp.then((buff)=> blobStream.end(buff))
+
+    }
+
+    catch {
+
+    }
     //console.log(req.file)
 
-    const file = multerUploads.dataUri(req).content;
-
-    let ext = path.extname(req.file.originalname);
-    let pth1 = 'public';
-    let pth2 = `${type}/${id}`
-    let pth = `${pth1}/${pth2}`
-
-
-    //console.log("Request file ---", req);//Here you get file.
-    // upload image here
-
-    //console.log(pth + "/" + id + ext)
-    let post = pth + "/" + id + ext
-    let post2 = pth2 + "/" + id
-    //console.log(process.env.CLOUDINARY_API_KEY)
-
-    console.log(req.file)
-
-    cloudinary.uploader.upload(file, {resource_type: "image", public_id: post2,
-    overwrite: true});
-
-    uploadImage(req.file, id, type);
-
-    res.send("Done")
+    
 
 });
 
