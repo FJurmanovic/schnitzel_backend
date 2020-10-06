@@ -5,7 +5,7 @@ Schnitzel is open-source social network made for posting your recipes or show of
 
 It is built with [MongoDB](https://www.mongodb.com/) for database, [ExpressJS](https://github.com/expressjs/express) as backend, [ReactJS](https://github.com/facebook/react) as frontend, [NodeJS](https://github.com/nodejs/node) for javascript runtime (MERN stack)
 
->> [Schnitzel frontend](https://github.com/Yurma/schnitzel)
+>> [Schnitzel frontend](https://github.com/Yurma/schnitzel_old)
 
 Features
 --------
